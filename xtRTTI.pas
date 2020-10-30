@@ -17,7 +17,7 @@ type
   end;
 
 const
- NULL_DATE: TDateTime = TDateDefaults.Null;      // corrisponde a '30/12/1899' impostata così storicamente, potrebbe essere
+ NULL_DATE: TDateTime = TDateDefaults.Null;
 
 type
 
@@ -34,138 +34,57 @@ type
 
   TMemberVisibility = TypInfo.TMemberVisibility;
   TMemberVisibilitySet = set of TMemberVisibility;
-// Imposta la proprietà APropertyName di tutti i componenti che hanno l'owner
-// indicato al valore AProperyValue.
-procedure SetPropertyOnAllComponents(const AOwner: TComponent; const APropertyName: string;
+  procedure SetPropertyOnAllComponents(const AOwner: TComponent; const APropertyName: string;
                                      const APropertyValue: TValue;
                                      const APropertyVisibility: TMemberVisibilitySet = [mvPublic, mvPublished]);
 
 type
-  /// <summary>
-  ///  Operazioni sui campi dei record.
-  /// </summary>
   TRecordHelper<T{: record}> = record
   strict private
-    /// <summary>
-    ///  Restituisce array con tutti i campi visibili, cioè ignora i campi il cui nome inizia per _.
-    /// </summary>
     class function GetVisibleFields(const AType: TRttiType): TArray<TRttiField>; static;
   public
     type
       TWriteRecordFieldProc = reference to procedure(var ARecord: T; const AField: TRttiField; var AStop: Boolean);
-    /// <summary>
-    ///  Enumera tutti i campi. NB ignora i campi il cui nome inizia per _.
-    /// </summary>
+
     class procedure ForEachField(var ARecord: T; const AProc: TWriteRecordFieldProc);  overload; static;
 
     type
       TReadRecordFieldProc = reference to procedure(const ARecord: T; const AField: TRttiField; var AStop: Boolean);
-    /// <summary>
-    ///  Enumera tutti i campi. NB ignora i campi il cui nome inizia per _.
-    /// </summary>
     class procedure ForEachField(const ARecord: T; const AProc: TReadRecordFieldProc); overload; static;
 
     class function FieldNames: TArray<string>; static;
 
-    /// <summary>
-    ///  Imposta tutti i campi a TValue.Empty.
-    /// </summary>
     class procedure Clear(var ARecord: T); static;
 
-    /// <summary>
-    ///  Restituisce un record con tutti i campi impostati a TValue.Empty.
-    /// </summary>
     class function Empty: T; static;
 
-    /// <summary>
-    ///  True se tutti i campi sono TValue.Empty o TValue.Make(nil).
-    /// </summary>
     class function IsEmpty(const ARecord: T): Boolean; static;
 
-    /// <summary>
-    ///  True se tutti i campi sono non vuoti (cioè con un valore diverso da TValue.Make(nil)).
-    /// </summary>
     class function IsComplete(const ARecord: T): Boolean; static;
 
-    /// <summary>
-    ///  Crea un record con tutti i campi valorizzati in base ai campi omonimi di AFields,
-    ///  che devono esistere tutti.
-    /// </summary>
     class function CreateFromFields(const AFields: TFields): T; overload; static;
-    /// <summary>
-    ///  Crea un record con tutti i campi indicati valorizzati in base ai campi omonimi di AFields,
-    ///  che devono esistere tutti.
-    /// </summary>
     class function CreateFromFields(const AFields: TFields; const AFieldNames: TArray<string>): T; overload; static;
-    /// <summary>
-    ///  Valorizza tutti i campi in base ai campi omonimi di AFields,
-    ///  che devono esistere tutti.
-    /// </summary>
     class procedure FromFields(var ARecord: T; const AFields: TFields); overload; static;
-    /// <summary>
-    ///  Valorizza tutti i campi in base ai campi di AFields specificati,
-    ///  che devono essere indicati nello stesso numero e ordine dei campi di ARecord.
-    /// </summary>
     class procedure FromFields(var ARecord: T; const AFields: TFields; const AFieldNames: TArray<string>); overload; static;
-    /// <summary>
-    ///  Copia i valori del record sui campi omonimi di AFields,
-    ///  che devono esistere tutti.
-    /// </summary>
     class procedure ToFields(const ARecord: T; const AFields: TFields); overload; static;
-    /// <summary>
-    ///  Copia i valori del record sui campi specificati di AFields,
-    ///  che devono essere indicati nello stesso numero e ordine dei campi di ARecord.
-    /// </summary>
     class procedure ToFields(const ARecord: T; const AFields: TFields; const AFieldNames: TArray<string>); overload; static;
 
     class function Compare(const AFirst, ASecond: T): Integer; static;
-
-    /// <summary>
-    ///  True se tutti i campi hanno lo stesso valore in AFirst e ASecond.
-    /// </summary>
     class function Equal(const AFirst, ASecond: T): Boolean; static;
 
-    /// <summary>
-    ///  Restituisce i valori di tutti i campi del record (in ordine)
-    ///  come variant array (utile per TDataSet.Locate).
-    /// </summary>
     class function GetValuesAsVariantArray(const ARecord: T): Variant; overload; static;
-    /// <summary>
-    ///  Restituisce i valori dei campi del record indicati (in ordine)
-    ///  come variant array (utile per TDataSet.Locate).
-    /// </summary>
+
     class function GetValuesAsVariantArray(const ARecord: T; const AFieldNames: TArray<string>): Variant; overload; static;
 
-    /// <summary>
-    ///  Copia i valori di tutti i campi di ADestination dai campi omonimi di
-    ///  ASource, che devono esistere tutti. Si usa quando i campi di
-    ///  ASource sono un sottoinsieme di quelli di ADestination.
-    ///  Se AStrict è False, i campi di ADestination non trovati in ASource
-    ///  vengono ignorati (non consigliato) altrimenti viene sollevata un'eccezione.
-    /// </summary>
     class procedure CopyFrom<TSource: record>(const ASource: TSource; var ADestination: T;
       const AStrict: Boolean = True); static;
 
-    /// <summary>
-    ///  Copia i valori di tutti i campi di ASource nei campi omonimi di
-    ///  ADestination, che devono esistere tutti. Si usa quando i campi di
-    ///  ASource sono un sottoinsieme di quelli di ADestination.
-    ///  Se AStrict è False, i campi di ASource non trovati in ADestination
-    ///  vengono ignorati (non consigliato) altrimenti viene sollevata un'eccezione.
-    /// </summary>
+
     class procedure CopyTo<TDestination: record>(const ASource: T; var ADestination: TDestination;
       const AStrict: Boolean = True); static;
   end;
 
-  /// <summary>
-  ///  Comparer da passare obbligatoriamente al costruttore di un
-  ///  TDictionary che abbia un record come chiave, perché altrimenti
-  ///  i duplicati non vengono gestiti.
 
-  ///
-  ///  Da utilizzare anche per ordinare gli array e liste
-
-  /// </summary>
   TRecordHelperComparer<T: record> = class(TCustomComparer<T>)
   public
     function Equals(const Left, Right: T): Boolean; override;
@@ -225,17 +144,10 @@ type
     function AsSingle: Single;
     function AsPointer: Pointer;
     property RttiType: TRttiType read GetRttiType;
-    /// <summary>
-    ///  Come AsVariant ma restituisce un Variant di tipo varDate e non varDouble
-    ///  per i TDate e TDateTime.
-    /// </summary>
+
     function AsActualVariant: Variant;
   end;
 
-  /// <summary>
-  ///  Un wrapper per TValue che limita la conversione implicit ai tipi
-  ///  supportati, aggiungendo rispetto a TValue anche il TDateTime.
-  /// </summary>
   TSynaValue = record
   public
     Value: TValue;
@@ -254,19 +166,10 @@ type
     function HasAttribute<T: TCustomAttribute>(const AProc: TProc<T>): Boolean; overload;
   end;
 
-/// <summary>
-///  True se AField ha un attributo del tipo indicato.
-/// </summary>
 function HasAttribute(const AField: TRttiField; const AAttributeClass: TClass): Boolean; overload;
-/// <summary>
-///  True se AType ha un attributo del tipo indicato.
-/// </summary>
+
 function HasAttribute(const AType: TRttiType; const AAttributeClass: TClass): Boolean; overload;
 
-/// <summary>
-///  IsNullDate Torna True de la data passata è considerata nulla
-///  si condiderano nulli i valori NullDate di DevExpress e le date -1, 0 e 1 che storicamente vengono usate in DocFinance
-///  </summary>
 function IsNullDate(const ADate: TDateTime): Boolean;
 
 implementation
@@ -629,31 +532,6 @@ begin
     end);
 end;
 
-//class procedure TMtRecord<T>.FromParams(var ARecord: T; const AParams: TMtParams; const AParamNames: TArray<string>);
-//var
-//  I: Integer;
-//begin
-//  Assert(Length(AParamNames) = Length(FieldNames));
-//
-//  Clear(ARecord);
-//  I := 0;
-//  ForEachField(ARecord,
-//    procedure (var ARecord: T; const AField: TRttiField; var AStop: Boolean)
-//    begin
-//      AField.SetValue(@ARecord, TValue.FromVariant(AParams.ParamByName(AParamNames[I]).Value));
-//      Inc(I);
-//    end);
-//end;
-
-//class procedure TMtRecord<T>.FromParams(var ARecord: T; const AParams: TMtParams);
-//begin
-//  Clear(ARecord);
-//  ForEachField(ARecord,
-//    procedure (var ARecord: T; const AField: TRttiField; var AStop: Boolean)
-//    begin
-//      AField.SetValue(@ARecord, TValue.FromVariant(AParams.ParamByName(AField.Name).Value));
-//    end);
-//end;
 
 class function TRecordHelper<T>.GetValuesAsVariantArray(const ARecord: T; const AFieldNames: TArray<string>): Variant;
 var
@@ -772,32 +650,6 @@ begin
       Inc(I);
     end);
 end;
-
-//class procedure TMtRecord<T>.ToParams(const ARecord: T; const AParams: TMtParams; const AParamNames: TArray<string>);
-//var
-//  I: Integer;
-//begin
-//  Assert(Length(AParamNames) = Length(FieldNames));
-//
-//  I := 0;
-//  ForEachField(ARecord,
-//    procedure (const ARecord: T; const AField: TRttiField; var AStop: Boolean)
-//    begin
-//      AParams.ParamByName(AParamNames[I]).Value := AField.GetValue(@ARecord).AsActualVariant;
-//      Inc(I);
-//    end);
-//end;
-
-//class procedure TMtRecord<T>.ToParams(const ARecord: T; const AParams: TMtParams);
-//begin
-//  ForEachField(ARecord,
-//    procedure (const ARecord: T; const AField: TRttiField; var AStop: Boolean)
-//    begin
-//      AParams.ParamByName(AField.Name).Value := AField.GetValue(@ARecord).AsActualVariant;
-//    end);
-//end;
-
-{ TMtRecordComparer<T> }
 
 function TRecordHelperComparer<T>.Equals(const Left, Right: T): Boolean;
 begin
@@ -982,7 +834,6 @@ begin
   Result := TypeInfo = System.TypeInfo(TGUID);
 end;
 
-{ TMtRecordAscendingComparer<T> }
 
 function TRecordHelperAscendingComparer<T>.Compare(const Left, Right: T): Integer;
 begin
@@ -1001,7 +852,6 @@ begin
   Result := FOrdinal;
 end;
 
-{ TMtRecordDescendingComparer<T> }
 
 function TRecordHelperDescendingComparer<T>.Compare(const Left, Right: T): Integer;
 begin
@@ -1020,7 +870,6 @@ begin
   Result := FOrdinal;
 end;
 
-{ TMtValue }
 
 class operator TSynaValue.Implicit(const AValue: Integer): TSynaValue;
 begin
@@ -1077,7 +926,6 @@ begin
   Result := False;
 end;
 
-{ TRttiTypeHelper }
 
 function TRttiTypeHelper.FindAttribute<T>: T;
 var
@@ -1108,7 +956,6 @@ begin
   end;
 end;
 
-{ TMtArray }
 
 class procedure TRTTIArray.Exclude<T>(var ASource: TArray<T>; const AValue: T);
 begin

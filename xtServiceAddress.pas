@@ -20,10 +20,11 @@ type
       validateAccount = 'ValidateAccount';
       registeraccount = 'registeraccount';
       jdataset        = 'jdataset';
-
-
-
-
+      entitypk        = 'entitypk';
+      uploadAttachment = 'UploadAttachment';
+      getWebAlias      = 'getwebalias';
+      setWebAlias      = 'setwebalias';
+      mailout          = 'mailout';
   end;
 
 

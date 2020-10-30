@@ -5,7 +5,6 @@ interface
 uses
   SysUtils, Classes,
   DB,
-  IDataControlsInterface ,
   System.Net.URLClient,
   System.Net.HttpClient,
   System.Net.Mime,
@@ -53,6 +52,7 @@ type
     function getUserLev: int64;
     function getUserId: int64;
     function getConnectionParams: TConnectionParam;
+    function getUserMail: String;
     { Private declarations }
   protected
     { Protected declarations }
@@ -63,7 +63,11 @@ type
 
     function ValidateAccount : TValidateAccount;
     property LastValidateAccountData : TValidateAccount read getLastValidateAccountResult;
+    function registerAccount(Params : TCreateXTAccountParams) : TEsitoRegistrazioneAccount;
+
+
     Property ConnectionParams: TConnectionParam read getConnectionParams;
+
 
     Procedure Open;
     Procedure Close;
@@ -89,15 +93,11 @@ type
     procedure setLastError(str : String);
     function MakeHash256(SS : TStream) : String;
 
-
-
-
-
-    function registerAccount(srvAddress : String;Params : TCreateXTAccountParams) : TAccountOutCome;
     procedure writeLog(msg : String);
 
     property UserId : int64 read getUserId;
     property UserLev : int64 read getUserLev;
+    property UserMail : String read getUserMail;
 
 
   published
@@ -148,37 +148,6 @@ procedure TXtConnection.writeLog(msg : String);
  end;
 
 
-function TXtConnection.registerAccount(srvAddress : String;Params : TCreateXTAccountParams) : TAccountOutCome;
-Var
-  RespText : String;
-  StatusCode : Integer;
-  respo: IHTTPResponse;
-  connPar : TConnectionParam;
-
-begin
- try
-  try
-   result.registratoCorrettamente := False;
-   result.errorCode               := -1000;
-   result.messaggio               := 'non ancora eseguito';
-
-   connPar.ServerAddress := srvAddress;
-   respo := TProviderHttp.doGet<TCreateXTAccountParams>(connPar,TxtServices.registeraccount,Params);
-   Result.registratoCorrettamente := (respo.StatusCode > 199)and(respo.StatusCode < 300)and(respo.ContentAsString = 'OK');
-   Result.errorCode               := StatusCode;
-   Result.messaggio               := RespText;
-  except
-   on e:exception do
-    Begin
-     result.registratoCorrettamente := False;
-     result.errorCode               := -2000;
-     result.messaggio               := e.Message;
-    End;
-  end;
- finally
- end;
- 
-end;
 
 
 
@@ -308,7 +277,10 @@ begin
  done := false;
  Try
   VA := ValidateAccount;
+
   FConnected := VA.Success and VA.Ok;
+
+  FValidateAccount := VA;
  Except
   On E:Exception do
    Begin
@@ -322,6 +294,39 @@ end;
 
 
 
+
+function TXtConnection.registerAccount(
+  Params: TCreateXTAccountParams): TEsitoRegistrazioneAccount;
+Var
+  RespText : String;
+  StatusCode : Integer;
+  respo: IHTTPResponse;
+  connPar : TConnectionParam;
+
+begin
+ try
+  try
+   result.registratoCorrettamente := False;
+   result.errorCode               := -1000;
+   result.messaggio               := 'non ancora eseguito';
+
+   connPar.ServerAddress := FConnectionParams.ServerAddress;
+   respo := TProviderHttp.doGet<TCreateXTAccountParams>(connPar,TxtServices.registeraccount,Params);
+   Result.registratoCorrettamente := (respo.StatusCode > 199)and(respo.StatusCode < 300)and(respo.ContentAsString = 'OK');
+   Result.errorCode               := StatusCode;
+   Result.messaggio               := RespText;
+  except
+   on e:exception do
+    Begin
+     result.registratoCorrettamente := False;
+     result.errorCode               := -2000;
+     result.messaggio               := e.Message;
+    End;
+  end;
+ finally
+ end;
+
+end;
 
 function TXtConnection.getUserId: int64;
 begin
@@ -341,6 +346,16 @@ begin
 end;
 
 
+
+function TXtConnection.getUserMail: String;
+begin
+  if Connected then
+   result := FValidateAccount.userMail
+  else
+   result := '';
+
+
+end;
 
 procedure TXtConnection.Setcachepath(const Value: String);
 begin

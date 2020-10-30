@@ -9,6 +9,12 @@ type
 
   TConnectionType = (ctHTTP, ctWebSoket, ctSoket);
 
+  TEsitoRegistrazioneAccount = record
+    registratoCorrettamente : Boolean;
+    errorCode               : Integer;
+    messaggio               : String;
+  end;
+
   TDBSCript = record
     scriptID: Int64;
     app_scope: String;
@@ -33,6 +39,7 @@ type
     Ok: Boolean;
     ResultString: String;
     UserId: Integer;
+    userMail: String;
     accesslevel: Integer;
     LimitiSuperati: Boolean;
     LimitString: String;
@@ -97,6 +104,22 @@ type
     TagObject: TObject;
   end;
 
+  TUploadAttachmentParams = record
+    filename : String;
+    action : String;
+    userid : Int64;
+    fk_users : Int64;
+    fk_cartella : Int64;
+    forcedpkid : Int64;
+    rel_tb_name : String;
+    rel_pk_id   : Int64;
+    attachment_type : Int64;
+    description : String;
+    accesslevel : Integer;
+    Forced_pk_id : Int64;
+  End;
+
+
   TFunctionToFireAfterAsync = function(dataset: TDataSet): String;
 
   TAttchmentDloadEndProc = procedure(IDAllegato: Integer;
@@ -125,6 +148,17 @@ type
     registratoCorrettamente: Boolean;
     errorCode: Integer;
     messaggio: String;
+  end;
+
+  TValidateAccountResult = record
+    Success: Boolean;
+    Ok: Boolean;
+    ResultString: String;
+    UserId: Integer;
+    AccessLevel: Integer;
+    LimitiSuperati: Boolean;
+    LimitString: String;
+    ErrorString : String;
   end;
 
 

@@ -3,12 +3,15 @@ unit uProviderHTTP;
 interface
 
 uses System.Classes,System.Net.URLClient, System.Net.HttpClient,
+     System.Net.Mime,
      System.Net.HttpClientComponent,xtCommonTypes, xtServiceAddress;
 
 type
   TProviderHttp = class(TObject)
   private
     class procedure ValidateServerCertificate(const Sender: TObject; const ARequest: TURLRequest; const Certificate: TCertificate; var Accepted: Boolean);
+    class procedure record2paramList<Tin>(var paramList: string; params: Tin);
+    class function ParamsToUrlParams(params : TStrings) : string;
   public
 
     class function validateAccount(account : TConnectionParam) : TValidateAccount; overload;
@@ -21,7 +24,14 @@ type
     class function doGet(account: TConnectionParam;service : String;params : String;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
 
     class function doPost<Tin,Tout>(account: TConnectionParam;service : String;params : Tin;returnValues : Tout;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
+    class function doPost<Tin>(account: TConnectionParam;service : String;params : Tin;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
     class function doPost(account: TConnectionParam;service : String;params : TStrings;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
+    class function doPost(account: TConnectionParam;service : String;params : String;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
+
+
+
+    class function doPostMultiPart<Tin>(account: TConnectionParam;service : String;params : Tin;postStream : TMultipartFormData;ContentType : String = 'multipart/form-data';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
+    class function doPostMultiPart(account: TConnectionParam;service : String;params : String;postStream : TMultipartFormData;ContentType : String = 'multipart/form-data';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
 
 
     class function getDomain(const URI: string): string;
@@ -37,26 +47,26 @@ uses System.SysUtils,System.Rtti, xtRTTI,IdURI;
 class function TProviderHttp.doGet(account: TConnectionParam; service: String;
   params: TStrings;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8'): IHTTPResponse;
 
-
-  function ParamsToUrlParams(params : TStrings) : string;
-  var
-    I: Integer;
-    tmp: string;
-   begin
-     result := '';
-     if params = nil then exit;
-
-
-
-     for I := 0 to params.count -1 do
-      begin
-       tmp := params.names[I] + '=' + params.values[params.names[I]];
-       if result = '' then
-        result := tmp
-       else
-        result := result + '&' + tmp;
-      end;
-   end;
+//
+//  function ParamsToUrlParams(params : TStrings) : string;
+//  var
+//    I: Integer;
+//    tmp: string;
+//   begin
+//     result := '';
+//     if params = nil then exit;
+//
+//
+//
+//     for I := 0 to params.count -1 do
+//      begin
+//       tmp := params.names[I] + '=' + params.values[params.names[I]];
+//       if result = '' then
+//        result := tmp
+//       else
+//        result := result + '&' + tmp;
+//      end;
+//   end;
 
 
 begin
@@ -120,12 +130,15 @@ begin
  httpCli := nil;
  try
 
-  xtHeaders := [
-                 TNetHeader.Create('CID',account.companyId),
-                 TNetHeader.Create('username',account.username),
-                 TNetHeader.Create('password',account.password)
-               ];
+  xtHeaders := [];
+  if (account.companyId <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('CID',account.companyId)];
 
+  if (account.username <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('username',account.username)];
+
+  if (account.password <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('password',account.password)];
 
   baseUrl := account.ServerAddress;
   if not baseUrl.endsWith('/') then
@@ -164,16 +177,7 @@ var
  paramList : String;
 begin
    paramList := '';
-
-   TRecordHelper<Tin>.ForEachField(Params,
-       procedure(var ARecord: Tin; const AField: TRttiField; var AStop: Boolean)
-       begin
-        if paramList <> '' then
-         paramList := paramList + '&';
-
-        paramList := paramList + AField.Name + '=' + AField.GetValue(@ARecord).ToString;
-       end
-       );
+   record2paramList<Tin>(paramList, params);
 
    result := TProviderHttp.doGet(account,service, paramList, ContentType, AcceptCharSet);
 end;
@@ -182,9 +186,55 @@ class function TProviderHttp.doPost(account: TConnectionParam; service: String;
   params: TStrings;
   postStream: TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8'): IHTTPResponse;
 begin
-
+  result := TProviderHttp.doPost(account,service,
+  ParamsToUrlParams(params),postStream,ContentType,
+  AcceptCharSet);
 end;
 
+
+class function TProviderHttp.doPost(account: TConnectionParam; service,
+  params: String; postStream: TStream; ContentType,
+  AcceptCharSet: String): IHTTPResponse;
+var
+  httpCli: TNetHTTPClient;
+  xtHeaders : TNetHeaders;
+  xtHeader : TNetHeader;
+  url: string;
+  baseUrl: String;
+begin
+ httpCli := nil;
+ try
+
+  xtHeaders := [
+                 TNetHeader.Create('CID',account.companyId),
+                 TNetHeader.Create('username',account.username),
+                 TNetHeader.Create('password',account.password)
+               ];
+
+
+  baseUrl := account.ServerAddress;
+  if not baseUrl.endsWith('/') then
+   baseUrl := baseUrl + '/';
+
+  url := baseUrl + service + '?' + params;
+
+  httpCli := TNetHTTPClient.Create(nil);
+  httpCli.OnValidateServerCertificate := ValidateServerCertificate;
+
+
+  httpCli.SendTimeout        := account.readTimeout;
+  httpCli.ResponseTimeout    := account.readTimeout;
+  httpCli.ConnectionTimeout  := account.connectionTimeOut;
+  httpCli.ContentType := ContentType;
+  httpCli.AcceptCharSet := AcceptCharSet;
+
+
+  result := httpCli.Post(url,postStream,nil,xtHeaders);
+ finally
+  FreeAndNil(httpCli);
+ end;
+
+end;
 
 class function TProviderHttp.doPost<Tin, Tout>(account: TConnectionParam;
   service: String;
@@ -192,6 +242,79 @@ class function TProviderHttp.doPost<Tin, Tout>(account: TConnectionParam;
   postStream: TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8'): IHTTPResponse;
 begin
 
+end;
+
+class function TProviderHttp.doPost<Tin>(account: TConnectionParam;
+  service: String; params: Tin; postStream: TStream; ContentType,
+  AcceptCharSet: String): IHTTPResponse;
+var
+  paramList: string;
+begin
+ record2paramList<Tin>(paramList, params);
+
+ result :=
+  doPost(account, service,
+          paramList,postStream,ContentType,
+          AcceptCharSet);
+end;
+
+class function TProviderHttp.doPostMultiPart(account: TConnectionParam; service,
+  params: String; postStream: TMultipartFormData; ContentType,
+  AcceptCharSet: String): IHTTPResponse;
+var
+  httpCli: TNetHTTPClient;
+  xtHeaders : TNetHeaders;
+  xtHeader : TNetHeader;
+  url: string;
+  baseUrl: String;
+begin
+  httpCli := nil;
+ try
+
+  xtHeaders := [
+                 TNetHeader.Create('CID',account.companyId),
+                 TNetHeader.Create('username',account.username),
+                 TNetHeader.Create('password',account.password)
+               ];
+
+
+  baseUrl := account.ServerAddress;
+  if not baseUrl.endsWith('/') then
+   baseUrl := baseUrl + '/';
+
+  url := baseUrl + service + '?' + params;
+
+  httpCli := TNetHTTPClient.Create(nil);
+  httpCli.OnValidateServerCertificate := ValidateServerCertificate;
+
+
+  httpCli.SendTimeout        := account.readTimeout;
+  httpCli.ResponseTimeout    := account.readTimeout;
+  httpCli.ConnectionTimeout  := account.connectionTimeOut;
+  httpCli.ContentType := ContentType;
+  httpCli.AcceptCharSet := AcceptCharSet;
+
+
+  result := httpCli.Post(url,postStream,nil,xtHeaders);
+ finally
+  FreeAndNil(httpCli);
+ end;
+
+end;
+
+
+class function TProviderHttp.doPostMultiPart<Tin>(account: TConnectionParam;
+  service: String; params: Tin; postStream: TMultipartFormData; ContentType,
+  AcceptCharSet: String): IHTTPResponse;
+var
+  paramList: string;
+begin
+ record2paramList<Tin>(paramList, params);
+
+ result :=
+  doPostMultiPart(account, service,
+          paramList,postStream,ContentType,
+          AcceptCharSet);
 end;
 
 class function TProviderHttp.EncodeStringToUrl(qu: String): String;
@@ -219,6 +342,21 @@ begin
      Result := qu;
 end;
 
+class procedure TProviderHttp.record2paramList<Tin>(var paramList: string; params: Tin);
+var
+ tmp : String;
+begin
+  tmp := paramList;
+  TRecordHelper<Tin>.ForEachField(Params, procedure (var ARecord: Tin; const AField: TRttiField; var AStop: Boolean)
+  begin
+    if tmp <> '' then
+     tmp := tmp + '&';
+
+    tmp := tmp + AField.Name + '=' + EncodeStringToUrl(AField.GetValue(@ARecord).ToString);
+  end);
+  paramList := tmp;
+end;
+
 class function TProviderHttp.getDomain(const URI: string): string;
 var
   IdURI: TIdURI;
@@ -231,6 +369,24 @@ begin
   end;
 end;
 
+class function TProviderHttp.ParamsToUrlParams(params: TStrings): string;
+var
+  I: Integer;
+  tmp: string;
+begin
+  result := '';
+  if params = nil then
+    exit;
+
+  for I := 0 to params.count - 1 do
+  begin
+    tmp := params.names[I] + '=' + params.values[params.names[I]];
+    if result = '' then
+      result := tmp
+    else
+      result := result + '&' + tmp;
+  end;
+end;
 
 class function TProviderHttp.validateAccount(
   account: TConnectionParam): TValidateAccount;
@@ -253,12 +409,14 @@ begin
       result.Ok := True;
     end;
 
-    if TS.count > 6 then
+    if TS.count > 7 then
     Begin
       result.UserId := TS[5].ToInteger();
       result.AccessLevel := TS[6].ToInteger();
       result.LimitiSuperati := (TS[1].ToLower = 'true');
       result.LimitString := TS[4];
+      result.UserMail := TS[7];
+
       if not result.Ok then
         result.ErrorString := tmpStr;
     End

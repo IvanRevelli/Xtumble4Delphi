@@ -35,7 +35,8 @@ requires
   IndyCore,
   FireDACCommon,
   dsnap,
-  SynaConn;
+  FireDAC,
+  FireDACCommonDriver;
 
 contains
   xtConnection in 'xtConnection.pas',
@@ -44,6 +45,11 @@ contains
   xtBaseConnection in 'xtBaseConnection.pas',
   uProviderHTTP in 'uProviderHTTP.pas',
   xtServiceAddress in 'xtServiceAddress.pas',
-  xtDatasetEntity in 'xtDatasetEntity.pas';
+  xtDatasetEntity in 'xtDatasetEntity.pas',
+  uXtDriveCommands in 'uXtDriveCommands.pas',
+  uxtStore in 'uxtStore.pas',
+  uxtCommonComponent in 'uxtCommonComponent.pas',
+  xtSendMail in 'xtSendMail.pas',
+  xtJSON in 'xtJSON.pas';
 
 end.
