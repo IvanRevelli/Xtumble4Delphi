@@ -8,6 +8,8 @@ If you create an <a href="https://xtumble.com">XTumble</a> Account you can have 
 Creating an Xtumble account is free and you can use it for thirty days.
 If you write to us at info@xtumble.com, you can keep your account for free until you finish the development for your customers.
 
+Xtumble is hosted on a powerful proprietary server farm and is able to scale according to your needs.
+
 With Xtumble4Delphi you can simply integrate all these services in your Delphi application, using the skills you have from Delphi like dataset.
 
 The main component of the library is the xtConnection that allow all comunication with the cloud, like a standard connection you only need to configure your Xtumble account profile (companyId, User, Password) and set connted to true to have access to all Xtumble Funtionality.
