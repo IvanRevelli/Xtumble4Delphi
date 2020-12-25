@@ -7,7 +7,13 @@ uses
 
 type
 
-  TConnectionType = (ctHTTP, ctWebSoket, ctSoket);
+   TFieldNameValue = record
+     Name : String;
+     Value : String;
+  end;
+
+  TConnectionType = (ctHTTP, ctWebSoket, ctSoket, (*old style*) ctIBO, ctWebService, ctHTTP_PHP,ctFireDac);
+  // TConnectionType = ();
 
   TEsitoRegistrazioneAccount = record
     registratoCorrettamente : Boolean;
@@ -63,6 +69,8 @@ type
     function compilato: Boolean;
   end;
 
+
+
   TLoginXTAccountParams = record
     reg_PIVA: String;
     reg_username: String;
@@ -82,10 +90,6 @@ type
 
   TArrayOfString = array of string;
 
-  TFieldNameValue = record
-    Name: String;
-    Value: String;
-  end;
 
   TRcdArray = TArray<TFieldNameValue>;
 
@@ -102,7 +106,18 @@ type
     TagString: String;
     Tag: Integer;
     TagObject: TObject;
+    Content_sha2_256 : String;
+    v_revision : String;
+    v_path     : String;
   end;
+
+  TUpdateApplicationInfo = record
+    prod_version  : String;
+    local_version : String;
+    updateAvailable : Boolean;
+    RecAllegatoProp : TRecAllegatoProp;
+  End;
+
 
   TUploadAttachmentParams = record
     filename : String;
@@ -117,6 +132,8 @@ type
     description : String;
     accesslevel : Integer;
     Forced_pk_id : Int64;
+    fullpath      : String;
+    custom_protocol : String;
   End;
 
 
@@ -125,6 +142,7 @@ type
   TAttchmentDloadEndProc = procedure(IDAllegato: Integer;
     OriginalFileName: String; LocalCacheFileName: String; MS: TMemoryStream;
     Error: String; DestFileName: String; Downloaded: Boolean) of object;
+
   TAttchmentDloadEndProcEX = procedure(IDAllegato: Integer;
     OriginalFileName: String; LocalCacheFileName: String; MS: TMemoryStream;
     Error: String; DestFileName: String; Downloaded: Boolean;
@@ -161,6 +179,69 @@ type
     ErrorString : String;
   end;
 
+  TMAIL_BATCH_ATTACHMENTS = record
+    MIMETYPE:String;
+    FILENAME:String;
+    ATTACHMENT_LINK:String;
+    FK_ATTACHMENTS:int64;
+    ATTACHMENT_REMOTE_NAME: String;
+  End;
+
+  TMAIL_BATCH_REPORTS = record
+    REPORT_NAME : String;
+  End;
+
+  TMAIL_BATCH = record
+    ID: Int64;
+    MAIL_TO: String;
+    SUBJECT: String;
+    BODY: UTF8String;
+    SENT: TDateTime;
+    SENT_FLAG: CHAR;
+    MAIL_FROM: String;
+    IS_HTML: CHAR;
+    HAVE_ATTACHMENTS: CHAR;
+    FOREIGN_ID: Integer;
+    FOREIGN_TABLE: String;
+    IDMAIL_STATUS: Integer;
+    MIMETYPE: String;
+    DATA_INSERIMENTO: TDateTime;
+    DATA_ULTIMA_MODIFICA: TDateTime;
+    DB_SYNC_ID: Integer;
+    UID: String;
+    CCN: String;
+    CC: String;
+    FK_IDDOC: Int64;
+    FROM_NAME: String;
+    FK_USER: Int64;
+    FK_CUSTOM_MAIL_TEMPLATE: Int64;
+    TEMPLATE_NAME : String;
+    TEMPLATE_PARAMS: String;
+    AttachmentList : TArray<TMAIL_BATCH_ATTACHMENTS>;
+    ReportList     : TArray<TMAIL_BATCH_REPORTS>;
+  End;
+
+
+
+ TConnectionProtocols = (cpSynaLogin,cpFBEmbedded,cpFBTCP,cpIBEmbedded,cpIBTCP);
+
+ TDataBaseConnectionParam = record
+    companyId           : String;
+    connection_protocol : TConnectionProtocols;
+    ServerAddress       : String;
+    DataBaseLocation    : String;
+    serverPort          : String;
+    userName            : String;
+    password            : String;
+    attachmentCachePath : String;
+    readTimeOut         : Integer;
+    connectionTimeOut   : Integer;
+    ConnectionType      : TConnectionType;
+    class operator Initialize (out Dest: TDataBaseConnectionParam);
+    function protocolAsString : String;
+    function DatabaseLocationFullPath : String;
+ end;
+
 
 
 implementation
@@ -168,6 +249,34 @@ implementation
 { TDataBaseConnectionParam }
 uses
   System.IOUtils;
+
+
+{ TDataBaseConnectionParam }
+
+
+
+function TDataBaseConnectionParam.protocolAsString: String;
+begin
+ case Self.connection_protocol of
+   cpSynaLogin   : result := 'synaLogin';
+   cpFBEmbedded  : result := 'Local';
+   cpFBTCP       : result := 'TCPIP';
+   cpIBEmbedded  : result := 'Local';
+   cpIBTCP       : result := 'TCPIP';
+ end;
+end;
+
+function TDataBaseConnectionParam.DatabaseLocationFullPath : String;
+begin
+  result := self.databaseLocation.Replace('.\',ExtractFileDir(paramstr(0)) + TPath.DirectorySeparatorChar).Replace('./',ExtractFileDir(paramstr(0))+ TPath.DirectorySeparatorChar);
+end;
+
+class operator TDataBaseConnectionParam.Initialize (out Dest: TDataBaseConnectionParam);
+begin
+  Dest.readTimeOut := 20000;
+  Dest.connectionTimeOut := 5000;
+end;
+
 
 
 class operator TConnectionParam.Initialize

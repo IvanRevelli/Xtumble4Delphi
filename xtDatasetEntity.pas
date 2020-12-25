@@ -262,7 +262,11 @@ begin
  bk := GetBookmark;
  Close;
  Open;
- GotoBookmark(bk);
+ try
+   GotoBookmark(bk);
+ except
+
+ end;
 
 
 
@@ -285,7 +289,10 @@ begin
     inherited
   Else
    Begin
-
+      if xtConnection = nil then
+       Begin
+        raise Exception.Create('connection is not defined');
+       End;
 
       T1 := now;
       ts := TStringList.Create;

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2020/10/12 19:31:33.000.476,C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Package1.dproj=C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Xtumble4Delphi.dproj</Transaction>
+    <Transaction>2020/10/12 19:32:40.000.106,C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Xtumble4Delphi.dproj=E:\Progetti\_Common\Xtumble4Delphi\Xtumble4Delphi.dproj</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<PIvanMacOS iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>

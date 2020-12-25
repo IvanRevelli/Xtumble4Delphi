@@ -7,13 +7,17 @@ uses system.SysUtils, system.Classes, xtCommonTypes, xtConnection,
 
 type
  TxtStore = class(TxtBaseComponent)
+ const
+    seconLevDomain = 'xtumble.store';
  private
     FwebAlias: String;
     FonWebAliasChange: TNotifyEvent;
+    Fhttp_port: Integer;
 
     function getStoreUrl: String;
     procedure SetwebAlias(const Value: String);
     procedure SetonWebAliasChange(const Value: TNotifyEvent);
+    procedure Sethttp_port(const Value: Integer);
  protected
     procedure doBeforeActivate; override;
     function getWebAlias : String;
@@ -21,6 +25,8 @@ type
    constructor Create(AOwner: TComponent); override;
  published
    property xtConnection;
+
+   property http_port : Integer read Fhttp_port write Sethttp_port;
 
    property webAlias : String read FwebAlias write SetwebAlias;
    property StoreUrl : String read getStoreUrl;
@@ -49,6 +55,7 @@ begin
   inherited;
   FWebAlias := '';
   FonwebaliasChange := nil;
+  Fhttp_port := 443;
 end;
 
 procedure TxtStore.doBeforeActivate;
@@ -61,10 +68,20 @@ end;
 
 function TxtStore.getStoreUrl: String;
 begin
+ { TODO : Inserire la chiamata ad una nuova servlet per gestire l'impostazione relativa ai domini personalizzati }
  if FwebAlias <> '' then
-   result := 'https://' + FwebAlias + '.xtumble.store'
+  Begin
+   if Fhttp_port = 443 then
+     result := 'https://' + FwebAlias + '.xtumble.store'
+   Else
+     result := 'http://' + FwebAlias + '.xtumble.store';
+  End
  else
-   result := 'https://xtumble.store'
+   result := 'https://xtumble.store';
+
+ if (Fhttp_port <> 443)AND(Fhttp_port <> 0)AND(Fhttp_port <> 80) then
+  result := result + ':' + http_port.ToString;
+
 end;
 
 function TxtStore.getWebAlias: String;
@@ -81,6 +98,11 @@ begin
   Begin
    raise Exception.Create('getWebAlias error [' + respo.StatusCode.ToString + ']: ' + respo.ContentAsString());
   End;
+end;
+
+procedure TxtStore.Sethttp_port(const Value: Integer);
+begin
+  Fhttp_port := Value;
 end;
 
 procedure TxtStore.SetonWebAliasChange(const Value: TNotifyEvent);

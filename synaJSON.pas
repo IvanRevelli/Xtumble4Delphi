@@ -1,4 +1,4 @@
-unit xtJSON;
+unit synaJSON;
 
 interface
 
@@ -61,7 +61,6 @@ type
     class function ToJSON<R: record>(const AArray: TArray<R>): TJSONArray; overload; inline;
 
     class procedure FromJSON(const AInstance: TObject; const AJSON: TJSONObject); overload; inline;
-    class function FromJSON<R{: record}>(const AJSONStream: TStream): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSONString: String): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSON: TJSONObject): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSON: TJSONArray): TArray<R>; overload; inline;
@@ -77,12 +76,8 @@ type
 
    class function ExtractSingleValueFromJSONArray(JArrayAsString : String;Index : Int64;FieldName : String) : String; overload;
 
+   // esempio--> Query: purchase_units[0].payments.captures[0].id
    class function ExtractSingleValueByJSONQueryAsString(myJVAL : String;Query : String) : String;
-
-   class function formatJSON(jsonString : String) : String; overload;
-   class function formatJSON(jsonStream : TStream) : String; overload;
-   class function JSONToStream(AJSON : TJSONObject) : TStringStream;
-   class function StreamToJSON(AStream : TStream) : TJSONObject;
 
   end;
 
@@ -110,7 +105,7 @@ function DataSetToCSV(const ADataSet: TDataSet; separator : String = ','; qualif
 implementation
 
 uses
-  StrUtils, DateUtils, NetEncoding, Math , xtRTTI, system.IOUtils;
+  StrUtils, DateUtils, NetEncoding, Math , synaRTTI;
 
 { TJSONPersistence }
 
@@ -242,31 +237,6 @@ begin
   LContext := TRttiContext.Create;
   LType := LContext.GetType(TypeInfo(TArray<R>));
   Result := JSONArrayToArray(AJSON, LType).AsType<TArray<R>>;
-end;
-
-class function TJSONPersistence.FromJSON<R>(const AJSONStream: TStream): R;
-var
-  JsonValue: TJSONValue;
-  a : TArray<Byte>;
-begin
-      //st := '{"data":{"results":[{"Branch":"ACCT590003"}]}}';
-   AJSONStream.Position :=0;
-
-   SetLength(a, AJSONStream.size);
-   AJSONStream.Position :=0;
-
-   AJSONStream.Read(Pointer(a)^, Length(a));
-
-   JsonValue := TJSonObject.ParseJSONValue(a,0,true);
-   //   Branch := JsonValue.GetValue<string>('data.results[0].Branch');
-
-
-
-   if JsonValue is TJSONObject then
-     result := FromJSON<R>(TJSONObject(JsonValue));
-
-  JsonValue.Free;
-
 end;
 
 class function TJSONPersistence.FromJSON<R>(const AJSONString: String): R;
@@ -1087,69 +1057,6 @@ begin
   end;
 end;
 
-
-class function TJSONHelper.formatJSON(jsonStream: TStream): String;
-var
-  JsonValue: TJSONValue;
-  a : TArray<Byte>;
-begin
-      //st := '{"data":{"results":[{"Branch":"ACCT590003"}]}}';
-   jsonStream.Position :=0;
-
-   SetLength(a, jsonStream.size);
-   jsonStream.Position :=0;
-
-   jsonStream.Read(Pointer(a)^, Length(a));
-
-   JsonValue := TJSonObject.ParseJSONValue(a,0,true);
-   //   Branch := JsonValue.GetValue<string>('data.results[0].Branch');
-
-
-
-   if JsonValue is TJSONObject then
-    result := TJSONObject(JsonValue).Format;
-
-//
-//   Result := JsonValue.GetValue<string>(query);
-   JsonValue.Free;
-
-end;
-
-class function TJSONHelper.JSONToStream(AJSON: TJSONObject): TStringStream;
-begin
- result := TStringStream.Create(AJson.toJSON);
- result.position := 0;
-end;
-
-class function TJSONHelper.StreamToJSON(AStream: TStream): TJSONObject;
-var
- LSS : TStringStream;
-begin
- AStream.Position := 0;
- LSS := TStringStream.Create;
- LSS.LoadFromStream(AStream);
- result := TJSONOBject(TJSonObject.ParseJSONValue(LSS.DataString));
- LSS.Free;
-end;
-
-class function TJSONHelper.formatJSON(jsonString: String): String;
-var
-  JsonValue: TJSONValue;
-begin
-      //st := '{"data":{"results":[{"Branch":"ACCT590003"}]}}';
-
-
-   JsonValue := TJSonObject.ParseJSONValue(jsonString);
-   //   Branch := JsonValue.GetValue<string>('data.results[0].Branch');
-
-   if JsonValue is TJSONObject then
-    result := TJSONObject(JsonValue).Format;
-
-//
-//   Result := JsonValue.GetValue<string>(query);
-   JsonValue.Free;
-
-end;
 
 class function TJSONHelper.stringToJSONArray(
   JArrayAsString: String): TJSONArray;
