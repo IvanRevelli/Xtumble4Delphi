@@ -1,0 +1,41 @@
+object frmContacts: TfrmContacts
+  Left = 0
+  Top = 0
+  Caption = 'Contacts'
+  ClientHeight = 557
+  ClientWidth = 929
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object StaticText1: TStaticText
+    AlignWithMargins = True
+    Left = 258
+    Top = 194
+    Width = 448
+    Height = 68
+    Margins.Left = 10
+    Margins.Top = 10
+    Margins.Right = 10
+    Margins.Bottom = 10
+    Align = alCustom
+    Alignment = taCenter
+    Caption = 'Work in progess....'
+    Color = clSilver
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -53
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 0
+    ExplicitLeft = 248
+    ExplicitTop = 184
+  end
+end
