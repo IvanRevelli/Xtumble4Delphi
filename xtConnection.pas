@@ -27,7 +27,6 @@ type
     FReadTimeout: Integer;
     FlastQueryError : String;
     FattchmentCachePath: String;
-    FAccesLevel: Integer;
     FAgent: String;
     FConnectionTimeout: Integer;
     FreadOnlyDatabase: Boolean;
@@ -260,8 +259,6 @@ begin
 end;
 
 function TXtConnection.MakeHash256(SS: TStream): String;
-var
-  Hash: String;
 begin
   Result := '';
   SS.Position := 0;
@@ -299,7 +296,6 @@ function TXtConnection.registerAccount(
   Params: TCreateXTAccountParams): TEsitoRegistrazioneAccount;
 Var
   RespText : String;
-  StatusCode : Integer;
   respo: IHTTPResponse;
   connPar : TConnectionParam;
 
@@ -313,7 +309,11 @@ begin
    connPar.ServerAddress := FConnectionParams.ServerAddress;
    respo := TProviderHttp.doGet<TCreateXTAccountParams>(connPar,TxtServices.registeraccount,Params);
    Result.registratoCorrettamente := (respo.StatusCode > 199)and(respo.StatusCode < 300)and(respo.ContentAsString = 'OK');
-   Result.errorCode               := StatusCode;
+   if not((respo.StatusCode > 199)and(respo.StatusCode < 300)) then
+      Result.errorCode               := respo.StatusCode
+   Else
+      Result.errorCode               := 0;
+
    Result.messaggio               := RespText;
   except
    on e:exception do

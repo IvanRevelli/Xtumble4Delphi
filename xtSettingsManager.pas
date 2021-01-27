@@ -20,7 +20,7 @@ type
 implementation
 
 uses
-  System.Classes,System.SysUtils, System.JSON, xtRTTI;
+  System.Classes,System.SysUtils, System.JSON, xtRTTI, xtJSON;
 
 
 procedure TSettingsManager<R>.loadFromFile;
@@ -55,7 +55,7 @@ begin
   JVal := nil;
   try
     TS := TStringList.Create;
-    JVal := synaJSON.TJSONPersistence.ToJSON<R>(Self.Data);
+    JVal := TJSONPersistence.ToJSON<R>(Self.Data);
     TS.Text := JVal.Format;
     TS.saveToFile(Self.FfileName);
   finally

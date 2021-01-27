@@ -239,7 +239,7 @@ type
     ConnectionType      : TConnectionType;
     class operator Initialize (out Dest: TDataBaseConnectionParam);
     function protocolAsString : String;
-    function DatabaseLocationFullPath : String;
+    function DatabaseLocationFullPath(appPath : String = '') : String;
  end;
 
 
@@ -266,9 +266,13 @@ begin
  end;
 end;
 
-function TDataBaseConnectionParam.DatabaseLocationFullPath : String;
+function TDataBaseConnectionParam.DatabaseLocationFullPath (appPath : String = '') : String;
 begin
-  result := self.databaseLocation.Replace('.\',ExtractFileDir(paramstr(0)) + TPath.DirectorySeparatorChar).Replace('./',ExtractFileDir(paramstr(0))+ TPath.DirectorySeparatorChar);
+ if appPath = '' then
+  result := self.databaseLocation.Replace('.\',ExtractFileDir(paramstr(0)) + TPath.DirectorySeparatorChar).Replace('./',ExtractFileDir(paramstr(0))+ TPath.DirectorySeparatorChar)
+ Else
+  result := self.databaseLocation.Replace('.\',appPath + TPath.DirectorySeparatorChar).Replace('./',appPath+ TPath.DirectorySeparatorChar);
+
 end;
 
 class operator TDataBaseConnectionParam.Initialize (out Dest: TDataBaseConnectionParam);

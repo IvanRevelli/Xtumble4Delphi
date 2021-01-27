@@ -117,7 +117,6 @@ class function TProviderHttp.doGet(account: TConnectionParam; service, params,
 var
   httpCli: TNetHTTPClient;
   xtHeaders : TNetHeaders;
-  xtHeader : TNetHeader;
   url: string;
   baseUrl: String;
 begin
@@ -190,7 +189,6 @@ class function TProviderHttp.doHead(account: TConnectionParam; service, params,
 var
   httpCli: TNetHTTPClient;
   xtHeaders : TNetHeaders;
-  xtHeader : TNetHeader;
   url: string;
   baseUrl: String;
 begin
@@ -250,7 +248,6 @@ class function TProviderHttp.doPost(account: TConnectionParam; service,
 var
   httpCli: TNetHTTPClient;
   xtHeaders : TNetHeaders;
-  xtHeader : TNetHeader;
   url: string;
   baseUrl: String;
 begin
@@ -321,7 +318,6 @@ class function TProviderHttp.doPostMultiPart(account: TConnectionParam; service,
 var
   httpCli: TNetHTTPClient;
   xtHeaders : TNetHeaders;
-  xtHeader : TNetHeader;
   url: string;
   baseUrl: String;
 begin
