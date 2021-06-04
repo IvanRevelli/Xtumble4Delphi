@@ -13,7 +13,7 @@ uses
   FireDAC.Phys.Intf,
   FireDAC.DApt.Column, FireDAC.DApt.Intf,
   FireDAC.Comp.DataSet, FireDAC.Comp.UI, FireDAC.Stan.Option,FireDAC.Comp.Client,
-  xtConnection, uProviderHTTP, xtServiceAddress,System.Net.HttpClient;
+  xtConnection, uProviderHTTP, xtServiceAddress,System.Net.HttpClient, xtCommonTypes;
 
 type
 //  __TFDDataSet = class
@@ -53,13 +53,18 @@ type
     procedure DoAfterInsert; override;
     procedure DoAfterOpen; override;
     procedure DoAfterPost; override;
+    procedure DoBeforeDelete; override;
+
     procedure DoAfterDelete; override;
     procedure SetActive(Value: Boolean); override;
     procedure DoBeforeRefresh; override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure customPost(params : TStrings;contentStream : TMemoryStream);
+
     procedure xtApplyUpdates;
+
+    function getDataSetInfo : TNamedDataSetInfo;
   published
     {xtConnection}
     property xtConnection : TXtConnection read FxtConnection write SetxtConnection;
@@ -150,6 +155,7 @@ procedure Register;
 
 implementation
 
+uses System.NetEncoding,system.JSON, xtJSON;
 
 procedure Register;
 begin
@@ -161,6 +167,7 @@ end;
 
 constructor TxtDatasetEntity.Create(AOwner: TComponent);
 begin
+
   FxtConnection:= nil;;
   FxtEntityName:= '';
   FxtApplyUpdateAfterPost:= False;
@@ -238,6 +245,31 @@ begin
    End;
 end;
 
+procedure TxtDatasetEntity.DoBeforeDelete;
+var
+  TS: TStringList;
+begin
+  inherited;
+
+  if not active then
+   raise Exception.Create('dataset is not active');
+
+
+
+  if FxtEntityName.ToLower = 'files' then
+   Begin
+      TS := TStringList.Create;
+
+      TS.Values['PK_ID'] := FieldByName('pk_id').AsString;
+      TS.Values['DELETED'] := 'S';
+      TS.Values['xtEntity'] := FxtEntityName;
+
+      customPost(TS,nil);
+      TS.Free;
+      Abort;
+   End;
+end;
+
 procedure TxtDatasetEntity.DoBeforeInsert;
 
 begin
@@ -249,6 +281,9 @@ end;
 procedure TxtDatasetEntity.DoBeforeOpen;
 begin
   inherited;
+  if xtApplyUpdateAfterDelete or xtApplyUpdateAfterPost then
+    Self.CachedUpdates := True;
+
 end;
 
 
@@ -269,6 +304,40 @@ begin
  end;
 
 
+
+end;
+
+function TxtDatasetEntity.getDataSetInfo: TNamedDataSetInfo;
+var
+  T1: TDateTime;
+  respo: IHTTPResponse;
+  MS: TStream;
+  JOBJ: TJSONObject;
+  miaStringa: string;
+begin
+  if xtConnection = nil then
+  Begin
+    raise Exception.Create('connection is not defined');
+  End;
+
+  T1 := now;
+  respo := TProviderHttp.doHead(xtConnection.ConnectionParams,
+    TxtServices.jdataset, 'xtEntity=' + FxtEntityName);
+
+//  MS := respo.contentStream;
+//  MS.Position := 0;
+//
+//  JOBJ := TJSONHelper.StreamToJSON(MS);
+
+//  miaStringa := respo.ContentAsString;
+
+  miaStringa :=  TBase64Encoding.Base64.Decode(
+                                respo.HeaderValue['dsetinfo']);
+//  AResponseInfo.CustomHeaders.Values['dsetinfo']
+
+
+
+  result := TJSONPersistence.FromJSON<TNamedDataSetInfo>(miaStringa);
 
 end;
 
@@ -300,6 +369,13 @@ begin
       ts.Add('max_records=' + FxtMaxRecords.ToString);
       ts.Add(xtParams.Text);
       respo := TProviderHttp.doGet(xtConnection.ConnectionParams,TxtServices.jdataset,ts);
+
+      if (respo.StatusCode < 200)or(respo.StatusCode > 299) then
+       Begin
+         raise Exception.Create('[TxtDatasetEntity.SetActive] Error on open query: ' + respo.ContentAsString );
+       End;
+
+
       ts.Free;
       MS := respo.ContentStream;
       MS.Position := 0;
@@ -451,6 +527,7 @@ end;
 procedure TxtDatasetEntity.SetxtApplyUpdateAfterPost(const Value: Boolean);
 begin
   FxtApplyUpdateAfterPost := Value;
+  Self.CachedUpdates := True;
 end;
 
 procedure TxtDatasetEntity.SetxtConnection(const Value: TXtConnection);

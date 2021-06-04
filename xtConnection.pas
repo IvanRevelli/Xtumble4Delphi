@@ -64,9 +64,7 @@ type
     property LastValidateAccountData : TValidateAccount read getLastValidateAccountResult;
     function registerAccount(Params : TCreateXTAccountParams) : TEsitoRegistrazioneAccount;
 
-
     Property ConnectionParams: TConnectionParam read getConnectionParams;
-
 
     Procedure Open;
     Procedure Close;
@@ -278,6 +276,10 @@ begin
   FConnected := VA.Success and VA.Ok;
 
   FValidateAccount := VA;
+
+  if not FConnected then
+   raise Exception.Create('XTumble connection error: ' + VA.ResultString);
+
  Except
   On E:Exception do
    Begin

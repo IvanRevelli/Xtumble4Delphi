@@ -40,6 +40,11 @@ type
       AcceptCharSet: String = 'utf-8'; OnReceiveData: TReceiveDataEvent = nil)
       : IHTTPResponse; overload;
 
+    class function doDelete(account: TConnectionParam; service: String;
+      params: String; ContentType: String = 'application/json';
+      AcceptCharSet: String = 'utf-8'; OnReceiveData: TReceiveDataEvent = nil)
+      : IHTTPResponse;
+
     class function doPost<Tin,Tout>(account: TConnectionParam;service : String;params : Tin;returnValues : Tout;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
     class function doPost<Tin>(account: TConnectionParam;service : String;params : Tin;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
     class function doPost(account: TConnectionParam;service : String;params : TStrings;postStream : TStream;ContentType : String = 'application/json';AcceptCharSet : String = 'utf-8') : IHTTPResponse; overload;
@@ -111,6 +116,60 @@ begin
   End;
 end;
 
+
+class function TProviderHttp.doDelete(account: TConnectionParam; service,
+  params, ContentType, AcceptCharSet: String;
+  OnReceiveData: TReceiveDataEvent): IHTTPResponse;
+var
+  httpCli: TNetHTTPClient;
+  xtHeaders : TNetHeaders;
+  url: string;
+  baseUrl: String;
+begin
+ httpCli := nil;
+ try
+
+  xtHeaders := [];
+  if (account.companyId <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('CID',account.companyId)];
+
+  if (account.username <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('username',account.username)];
+
+  if (account.password <> '') then
+   xtHeaders := xtHeaders + [TNetHeader.Create('password',account.password)];
+
+  baseUrl := account.ServerAddress;
+  if not baseUrl.endsWith('/') then
+   baseUrl := baseUrl + '/';
+
+  url := baseUrl + service + '?' + params;
+
+  httpCli := TNetHTTPClient.Create(nil);
+  {$IFNDEF MACOS}
+  httpCli.OnValidateServerCertificate := ValidateServerCertificate;
+  {$ENDIF}
+
+
+//  httpCli.OnReceiveData := nil;
+
+  httpCli.SendTimeout        := account.readTimeout;
+  httpCli.ResponseTimeout    := account.readTimeout;
+  httpCli.ConnectionTimeout  := account.connectionTimeOut;
+  httpCli.ContentType := ContentType;
+  httpCli.AcceptCharSet := AcceptCharSet;
+
+  {$IFNDEF MACOS}
+  if assigned(OnReceiveData) then
+   httpCli.OnReceiveData := OnReceiveData;
+  {$ENDIF}
+
+  result := httpCli.Delete(url,nil,xtHeaders);
+ finally
+  FreeAndNil(httpCli);
+ end;
+
+end;
 
 class function TProviderHttp.doGet(account: TConnectionParam; service, params,
   ContentType, AcceptCharSet: String; OnReceiveData: TReceiveDataEvent): IHTTPResponse;

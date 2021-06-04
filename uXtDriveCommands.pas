@@ -12,6 +12,11 @@ type
 
  TBeforeDownloadMethod = reference to function (filename, localRevision, remoteRevision : String) : Boolean;
 
+ TBeforeDownload = reference to  procedure (filename : String; Size : Int64) ;
+ TProgressProc   = reference to  procedure (position : Int64; LogStr : String);
+ TEndDownload    = reference to  procedure (ErrorCount : Int64) ;
+
+
  TrcdFileCartella  = record
     pk_allegato : Int64;
     pk_cartella : Int64;
@@ -22,12 +27,14 @@ type
    class function revisionToAbsoluteNumber(
          revisionString: String): Extended;
  public
-
-
-
    constructor Create(AOwner: TComponent); override;
 
    procedure buildcustomweb(fk_cartella : int64 = -1);
+
+   function folderExists(fullFolderPath : String; createIfNotExists : Boolean = False) : Int64;
+
+   function getWebTemplateNames : TFolders;
+
    function editBaseWebFile(relativeFileName : String) : TrcdFileCartella;
 
    function dloadFile(pk_id : Integer; aspSize: Integer = -1; retriveInformation : Boolean = False): TRecAllegatoProp; overload;
@@ -54,7 +61,9 @@ type
               AFullPath : String = '';ACustomProtocol : String = ''): int64; overload;
 
 
-   function importZipFiles(ParentFolder : String;ArcFileName: String; LogLines : TStrings = nil): Int64;
+   function importZipFiles(ParentFolder : String;ArcFileName: String; LogLines : TStrings = nil; progrFunc : TProgressProc = nil; beforeDload: TBeforeDownload = nil;EndDload : TEndDownload = nil): Int64;
+
+
  published
    property xtConnection;
  end;
@@ -65,7 +74,7 @@ implementation
 
 uses System.Net.URLClient, system.IOUtils,
      System.Net.Mime, xtServiceAddress, System.Zip,
-     System.Character;
+     System.Character, xtDatasetEntity;
 
 
 procedure Register;
@@ -85,6 +94,13 @@ begin
    filtro := 'fk_cartella=' + fk_cartella.ToString;
 
   respo := HTTPprov.doGet(xtConnection.ConnectionParams,TxtServices.buildcustomweb,filtro);
+
+  if (respo.StatusCode < 200) or (respo.StatusCode > 299) then
+   Begin
+     raise Exception.Create('Error on building web[' + respo.StatusCode.ToString + ']: ' + respo.ContentAsString);
+   End;
+
+
 end;
 
 class function TxtDriveCommands.ckPublicApplicationVersion(
@@ -300,6 +316,25 @@ begin
 
 end;
 
+function TxtDriveCommands.folderExists(fullFolderPath : String; createIfNotExists : Boolean = False) : Int64;
+var
+  xtFolderExists : TxtDatasetEntity;
+  rFolder   : TRecFolderProp;
+begin
+ result := -1;
+ xtFolderExists := TxtDatasetEntity.Create(Self);
+ xtFolderExists.xtParams.Values['fullpath'] := fullFolderPath;
+ if createIfNotExists then
+   xtFolderExists.xtParams.Values['create_if_not_exists'] := 'Y';
+
+ xtFolderExists.xtEntityName  := 'folderexists';
+ xtFolderExists.xtConnection  := Self.xtConnection;
+ xtFolderExists.Open;
+ result := xtFolderExists.FieldByName('pk_id').AsLargeInt;
+ xtFolderExists.Close;
+ FreeAndNil(xtFolderExists);
+end;
+
 function TxtDriveCommands.getFileInfo(fname: String): TRecAllegatoProp;
 var
   respo: IHTTPResponse;
@@ -459,6 +494,32 @@ begin
 end;
 
 
+function TxtDriveCommands.getWebTemplateNames: TFolders;
+var
+  xtFolders : TxtDatasetEntity;
+  rFolder   : TRecFolderProp;
+begin
+ result := [];
+ xtFolders := TxtDatasetEntity.Create(Self);
+ xtFolders.xtParams.Values['FULL_PARENT_PATH'] := '/@web/custom_template';
+ xtFolders.xtParams.Values['fkparentfolder'] := '-1000';
+ xtFolders.xtEntityName  := 'folders';
+ xtFolders.xtConnection  := Self.xtConnection;
+ xtFolders.Open;
+ xtFolders.First;
+ while not xtFolders.Eof do
+  Begin
+   rFolder.PK_ID := xtFolders.FieldByName('pk_id').AsLargeInt;
+   rFolder.FolderName := xtFolders.FieldByName('name').AsString;
+   rFolder.FolderFullPath := xtFolders.FieldByName('FullPath').AsString;
+
+   result := result + [rFolder];
+   xtFolders.Next;
+  End;
+ xtFolders.Close;
+ FreeAndNil(xtFolders);
+end;
+
 function TxtDriveCommands.getFileInfo(pk_id: Int64): TRecAllegatoProp;
 var
   respo: IHTTPResponse;
@@ -539,7 +600,13 @@ begin
   End;
 end;
 
-function TxtDriveCommands.importZipFiles(ParentFolder : String;ArcFileName: String; LogLines : TStrings = nil): Int64;
+function TxtDriveCommands.importZipFiles
+    (ParentFolder : String;
+     ArcFileName: String;
+     LogLines : TStrings = nil;
+     progrFunc : TProgressProc = nil;
+     beforeDload: TBeforeDownload = nil;
+     EndDload : TEndDownload = nil): Int64;
 var
   zf: TZipFile;
   I: Integer;
@@ -559,6 +626,10 @@ begin
    if zf.IsValid(ArcFileName) then
     Begin
       zf.Open(ArcFileName,TZipMode.zmRead);
+
+      if assigned(beforeDload) then
+        beforeDload(ArcFileName,zf.FileCount);
+
       for I:=0 to zf.FileCount -1 do
        Begin
         zf.Read(I,SS,ZipHead);
@@ -582,12 +653,27 @@ begin
           if LogLines <> nil then
             LogLines.Add('### ' + fname + ' --> ' + fsize + 'bytes');
          End;
+
+        if assigned(progrFunc) then
+          progrFunc(I,'');
+
        End;
     End;
     if LogLines <> nil then
       LogLines.Add('##### END ' + ParentFolder + '#####');
+
+    if assigned(EndDload) then begin
+       EndDload(200); // 200 = ok
+    end;
+
  finally
-   try zf.Free; except end;
+   try
+    zf.Free;
+   except
+      if assigned(EndDload) then begin
+         EndDload(401); // 401 = errore
+      end;
+   end;
  end;
 
 

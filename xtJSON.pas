@@ -60,11 +60,19 @@ type
     class function ToJSON<R{: record}>(const ARecord: R): TJSONValue; overload; inline;
     class function ToJSON<R: record>(const AArray: TArray<R>): TJSONArray; overload; inline;
 
+    class function ToJSONFile<R{: record}>(const ARecord: R; const outFileName : String): Boolean; inline;
+
+    class function ToJSONString<R{: record}>(const ARecord: R; Formatted : Boolean = True): String; inline;
+
+    class function ToJSONStream<R{: record}>(const ARecord: R; Formatted : Boolean = True): TStream; inline;
+
     class procedure FromJSON(const AInstance: TObject; const AJSON: TJSONObject); overload; inline;
     class function FromJSON<R{: record}>(const AJSONStream: TStream): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSONString: String): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSON: TJSONObject): R; overload; inline;
     class function FromJSON<R{: record}>(const AJSON: TJSONArray): TArray<R>; overload; inline;
+
+    class function FromJSONFile<R{: record}>(const FileName : String): R; inline;
   end;
 
   TJSONHelper = class
@@ -242,6 +250,24 @@ begin
   LContext := TRttiContext.Create;
   LType := LContext.GetType(TypeInfo(TArray<R>));
   Result := JSONArrayToArray(AJSON, LType).AsType<TArray<R>>;
+end;
+
+class function TJSONPersistence.FromJSONFile<R>(const FileName: String): R;
+Var
+  TS : TStringList;
+begin
+  TS := nil;
+  if not FileExists(FileName) then
+    raise Exception.Create('[TJSONPersistence.FromJSONFile] file not found: '+ FileName);
+
+  TS := TStringList.Create;
+  TS.LoadFromFile(FileName,TEncoding.UTF8);
+
+  Result := FromJSON<R>(TS.Text);
+
+  TS.Free;
+
+
 end;
 
 class function TJSONPersistence.FromJSON<R>(const AJSONStream: TStream): R;
@@ -711,6 +737,64 @@ begin
   Result := ArrayToJSONArray(TValue.From<TArray<R>>(AArray));
 end;
 
+class function TJSONPersistence.ToJSONFile<R>(const ARecord: R; const outFileName : String): Boolean;
+Var
+  JVal : TJsonValue;
+  TS   : TStringList;
+//  JObj : TJSONObject;
+begin
+ try
+  JVal := TJSONPersistence.ToJSON<R>(ARecord);
+  TS   := TStringList.Create;
+  TS.Text := JVal.Format;
+  TS.SaveToFile(outFileName,TEncoding.UTF8);
+
+  result := FileExists(outFileName);
+ finally
+  try JVAL.Free; except end;
+  try TS.Free; except end;
+ end;
+end;
+
+class function TJSONPersistence.ToJSONStream<R>(const ARecord: R;
+  Formatted: Boolean): TStream;
+var
+ myStream : TStringStream;
+ myStr : String;
+begin
+ result := nil;
+ mystr := toJSONString<R>(ARecord,true);
+ myStream := TStringStream.Create(myStr,TEncoding.UTF8);
+ myStream.Position := 0;
+ result := myStream;
+end;
+
+class function TJSONPersistence.ToJSONString<R>(const ARecord: R; Formatted : Boolean = True): String;
+var
+  JOBJ : TJSONValue;
+
+begin
+  Result := '';
+  JOBJ := nil;
+  try
+    JOBJ := TJSONPersistence.ToJSON<R>(ARecord);
+
+    if JOBJ <> nil then
+     Begin
+      if Formatted then
+       result := JOBJ.Format
+      else
+       result := JOBJ.ToJSON;
+     End;
+  finally
+   if JOBJ <> nil then
+    try
+      FreeAndNil(JOBJ);
+    except
+    end;
+  end;
+end;
+
 class function TJSONPersistence.TValueToJSONValue(const AValue: TValue; const AType: TRttiType;
   const ADestination: TRttiNamedObject): TJSONValue;
 var
@@ -845,8 +929,6 @@ begin
     raise Exception.Create('DataSet is empty');
 
 
-
-
   Result := TJSONObject.Create;
   try
     for LField in ADataSet.Fields do
@@ -856,13 +938,10 @@ begin
         LPairName := LField.FieldName;
         if ARootPath <> '' then
           LPairName := LeftStr(LPairName, Length(ARootPath) + 1);
-
         if ContainsStr(LPairName, '.') then
           Continue;
-
         case LField.DataType of
   //        ftUnknown: ;
-
           ftString: Result.AddPair(LPairName, LField.AsString);
           ftSmallint: Result.AddPair(LPairName, NumericFieldToJSON(LField));
           ftInteger: Result.AddPair(LPairName, NumericFieldToJSON(LField));
@@ -922,7 +1001,8 @@ begin
     raise;
   end;
 end;
-
+
+
 class function TJSON2Dataset.DataSetToJSONArray(const ADataSet: TDataSet): TJSONArray;
 begin
   Result := DataSetToJSONArray(ADataSet, nil);
@@ -951,13 +1031,13 @@ begin
     LDisplayFormat := TSQLTimeStampField(AField).DisplayFormat
   else if AField is TDateTimeField then // TDateField and TTimeField are subclasses of TDateTimeField
     LDisplayFormat := TDateTimeField(AField).DisplayFormat;
-
   if LDisplayFormat <> '' then
     Result := AField.DisplayText
   else
     Result := DateToJSON(AField.AsDateTime, AInputIsUTC);
 end;
-
+
+
 
 class function TJSON2Dataset.DateToJSON(const ADate: TDateTime;
   AInputIsUTC: Boolean): string;
@@ -978,17 +1058,13 @@ begin
   LDisplayFormat := '';
   if AField is TNumericField then
     LDisplayFormat := TNumericField(AField).DisplayFormat;
-
   if LDisplayFormat <> '' then
    Begin
-
     // And use it in the thread safe form of CurrToStrF
    //      CurrToStrF(AField.AsCurrency, ffCurrency, 2, formatSettings);
     //    Result := TJSONString.Create(AField.DisplayText)
 
-
      formatSettings.currencyString := '';
-
 
      Result := TJSONString.Create(CurrToStrF(AField.AsCurrency, ffCurrency, 2, formatSettings))
    End
@@ -1007,7 +1083,8 @@ begin
       Result := TJSONNumber.Create(AField.AsFloat)
   end;
 end;
-
+
+
 
 class function TJSON2Dataset.DataSetToJSONArray(const ADataSet: TDataSet;
   const AAcceptFunc: TFunc<Boolean>): TJSONArray;
@@ -1020,7 +1097,6 @@ begin
   try
     if not ADataSet.Active then
       ADataSet.Open;
-
     ADataSet.DisableControls;
     try
       LBookmark := ADataSet.Bookmark;
@@ -1045,14 +1121,14 @@ begin
   end;
 end;
 
-class function TJSONHelper.BooleanToTJSON(AValue: Boolean): TJSONValue;
+
+class function TJSONHelper.BooleanToTJSON(AValue: Boolean): TJSONValue;
 begin
   if AValue then
     Result := TJSONTrue.Create
   else
     Result := TJSONFalse.Create;
 end;
-
 
 class function TJSONHelper.ExtractSingleValueFromJSONArray(JArray: TJSONArray;
   index: Integer; fieldname: String): String;
@@ -1117,7 +1193,7 @@ end;
 
 class function TJSONHelper.JSONToStream(AJSON: TJSONObject): TStringStream;
 begin
- result := TStringStream.Create(AJson.toJSON);
+ result := TStringStream.Create(AJson.toJSON,TEncoding.UTF8);
  result.position := 0;
 end;
 

@@ -24,6 +24,8 @@ type
       uploadAttachment  = 'UploadAttachment';
       getWebAlias       = 'getwebalias';
       setWebAlias       = 'setwebalias';
+      getwebtemplate       = 'getwebtemplate';
+      setwebtemplate       = 'setwebtemplate';
       mailout           = 'mailout';
       uploadrawtemplate = 'uploadrawtemplate';
       downloadtemplate  = 'downloadreporttemplate';

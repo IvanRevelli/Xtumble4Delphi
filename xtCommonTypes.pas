@@ -7,10 +7,15 @@ uses
 
 type
 
-   TFieldNameValue = record
+
+
+
+  TFieldNameValue = record
      Name : String;
      Value : String;
   end;
+
+  TRcdArray = TArray<TFieldNameValue>;
 
   TConnectionType = (ctHTTP, ctWebSoket, ctSoket, (*old style*) ctIBO, ctWebService, ctHTTP_PHP,ctFireDac);
   // TConnectionType = ();
@@ -25,6 +30,13 @@ type
     scriptID: Int64;
     app_scope: String;
     psql: String;
+  end;
+
+  TNextScriptResult = record
+    success : Boolean;
+    MessageText : String;
+    noMoreScripts : boolean;
+    script : TDBScript;
   end;
 
   TConnectionParam = record
@@ -91,10 +103,10 @@ type
   TArrayOfString = array of string;
 
 
-  TRcdArray = TArray<TFieldNameValue>;
+
 
   TRecAllegatoProp = record
-    pk_id: Integer;
+    pk_id: Int64;
     OriginalFileName: String;
     DisplayFileName: String;
     FileSize: Int64;
@@ -109,6 +121,24 @@ type
     Content_sha2_256 : String;
     v_revision : String;
     v_path     : String;
+  end;
+
+  TRecFolderProp = record
+  public
+    FolderName : String;
+    FolderFullPath : String;
+    PK_ID : Int64;
+  end;
+
+  TFolders = TArray<TRecFolderProp>;
+
+  TRecUploadAllegatoResult = record
+    pk_id : Int64;
+    Error : String;
+    http_status_code : Integer;
+    FileSize : Int64;
+    DestFileName : String;
+    function Completed : Boolean;
   end;
 
   TUpdateApplicationInfo = record
@@ -242,6 +272,45 @@ type
     function DatabaseLocationFullPath(appPath : String = '') : String;
  end;
 
+ TAddressInfo = record
+ Const
+   stNonValido = -2;
+   stValido    = 1;
+   stErrorOSM  = 2;
+   stIndefinito= -1;
+ public
+   Stato : Integer; // 0 --> non valido 1 --> Valido 2 --> errore parsing da openStreetMap
+   Latitudine : Single;
+   Longitudine : Single;
+   Distanza : Single;
+   Limite_km_superato : String; // S o N
+
+   indirizzo : String;
+   numero_civico : String;
+   cap : String;
+   localita : String;
+   prov_nome_esteso : String;
+   Provincia   : String;
+   Nazione     : String;
+
+   MaxDistance : Extended;
+   LimiteDistanzaAttivo : Boolean;
+
+   function FullAddress : String;
+ end;
+
+ TFieldInfo = record
+    Name : String;
+    dataType  : TFieldType;
+    size      : Integer;
+  end;
+
+  TNamedDataSetInfo = record
+    Name   : String;
+    Fields : TArray<TFieldInfo>;
+    Params : TArray<TFieldInfo>;
+    class operator Initialize (out Dest: TNamedDataSetInfo);
+  end;
 
 
 implementation
@@ -357,4 +426,31 @@ begin
   Self.SessionID := '';
 end;
 
+{ TRecUploadAllegatoResult }
+
+function TRecUploadAllegatoResult.Completed: Boolean;
+begin
+ Result := (Error = '')and(pk_id > 0)and(http_status_code > 199)and(http_status_code < 300);
+end;
+
+{ TAddressInfo }
+
+function TAddressInfo.FullAddress: String;
+begin
+  Result := self.indirizzo + ' ' +
+      self.numero_civico + ' ' + self.cap
+       + ' ' + self.localita + ' ' +
+      self.prov_nome_esteso;
+end;
+
+{ TNamedDataSetInfo }
+
+class operator TNamedDataSetInfo.Initialize(out Dest: TNamedDataSetInfo);
+begin
+ Dest.Fields := [];
+ Dest.Params := [];
+end;
+
+
 end.
+

@@ -12,28 +12,52 @@ uses
 
 type
 
-
-  TRcdArray = TArray<TFieldNameValue>;
-
-  TFireDacHelper  = class
+  TFireDacHelper = class
     class function StringToParams(paramsString: String): TStringList;
-    class Function OpenQu(FDConn : TFDConnection;Qu : String;Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '###,###.00') : TDataSet;
-    class Function OpenQuByName(FDConn : TFDConnection;QuName : String;fk_custom_report : Int64;Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '###,###.00') : TDataSet;
-    class Function quReadFirstField(FDConn : TFDConnection;Qu : String) : String;
-    class Function QuReadFirstRecord(FDConn : TFDConnection;Qu: String;Params : TStrings = nil): TrcdArray;
-    class function ExecQu(FDConn: TFDConnection; Qu: String; SollevaEccezione: Boolean = True): Boolean;
-    class function CreateFDConnection(
-  DataBaseConnectionParam: TDataBaseConnectionParam;autoActivate : Boolean = true): TFDConnection;
-    class procedure applyFDConnSettings(FDConn: TFDConnection;
-  DataBaseConnectionParam: TDataBaseConnectionParam; autoActivate : Boolean = True; appPath : String = '');
-    class function GenValue(FDConn : TFDConnection;generatorName: String;
-  Increment: Int64 = 1): Int64;
 
+    class procedure stdFieldDispW(ds : TDataSet);
+
+    class Function OpenQu(FDConn : TFDConnection;Qu : String;
+Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '0.00';maxFieldDisplaySize : Integer = 40; onlyPrepareDS : Boolean = false) : TDataSet;
+
+    class Function OpenQuByName(FDConn: TFDConnection; QuName: String;
+      fk_custom_report: Int64; Params: TStrings = nil; AutoOpen: Boolean = True;
+      LocaleSettings: String = 'it'; NumericDisplayFormat: String = '0.00';
+      maxFieldDisplaySize: Integer = 40): TDataSet;
+
+    class function quReadFirstField(FDConn: TFDConnection; Qu: String;
+      raiseExceptionIfNoRecordsFound: Boolean = False): String;
+
+    class Function QuReadFirstRecord(FDConn: TFDConnection; Qu: String;
+      Params: TStrings = nil): TrcdArray;
+
+    class function ExecQu(FDConn: TFDConnection; Qu: String;
+      SollevaEccezione: Boolean = True): Boolean;
+
+    class function CreateFDConnection(DataBaseConnectionParam
+      : TDataBaseConnectionParam; autoActivate: Boolean = True): TFDConnection;
+
+    class procedure applyFDConnSettings(FDConn: TFDConnection;
+      DataBaseConnectionParam: TDataBaseConnectionParam;
+      autoActivate: Boolean = True; appPath: String = '');
+
+    class function GenValue(FDConn: TFDConnection; generatorName: String;
+      Increment: Int64 = 1): Int64;
 
     // FUNZIONI SPECIFICHE XTUMBLE
-    class function GetImpostazione(FDConn: TFDConnection; costante: String;DefaultValue : String = ''): String;
-    class function SetImpostazione(FDConn: TFDConnection; costante: String;Value : String = ''): String;
+    class function GetImpostazioneAsExtended(FDConn: TFDConnection;
+      costante, DefaultValue: String): Extended;
 
+    class function GetImpostazioneAsInteger(FDConn: TFDConnection;
+  costante : String; DefaultValue: Integer): Integer;
+
+    class function GetImpostazione(FDConn: TFDConnection; costante: String;
+      DefaultValue: String = ''): String;
+
+    class function SetImpostazione(FDConn: TFDConnection; costante: String;
+      Value: String = ''): String;
+
+    class function DestroyConnection(var FDConn: TFDConnection) : Boolean;
 
   end;
 
@@ -41,6 +65,8 @@ implementation
 
 { TFireDacHelper }
 uses System.IOUtils
+ , xtDatasetEntity
+ , xtJSON
 {$IFDEF IOS}
  ,Macapi.CoreFoundation
 {$ENDIF}
@@ -53,8 +79,6 @@ var
 begin
   if FDConn.Connected then
     FDConn.Close;
-
-
 
    If (DataBaseConnectionParam.DatabaseLocationFullPath.StartsWith('.' + TPath.DirectorySeparatorChar))
       and
@@ -177,12 +201,33 @@ begin
 
 end;
 
+class function TFireDacHelper.DestroyConnection(
+  var FDConn: TFDConnection): Boolean;
+begin
+ Try
+   if FDConn <> nil then
+    Begin
+      if FDConn.Connected then
+        FDConn.Close;
+    End;
+ Except
+
+ End;
+
+ Try
+   FreeAndNil(FDConn);
+ Except
+
+ End;
+end;
+
 class function TFireDacHelper.ExecQu(FDConn: TFDConnection; Qu: String;
   SollevaEccezione: Boolean): Boolean;
 var
   IBQ: TFDQuery;
   StrTmp: string;
 begin
+  ibq := nil;
   result := False;
   Try
     If not FDConn.Connected then
@@ -202,6 +247,7 @@ begin
       End;
     End;
   Finally
+   if ibq <> nil then
     try ibq.Free; Except end;
   End;
 
@@ -219,29 +265,90 @@ class function TFireDacHelper.GetImpostazione(FDConn: TFDConnection;
 var
   ds: TdataSet;
 begin
+ ds := nil;
  try
   ds := OpenQu(FDConn,'select result from GET_IMPOSTAZIONE('''+ costante + ''','''+ DefaultValue + ''',''STRING'')');
   result := ds.Fields[0].AsString;
   ds.Close;
  finally
-  try ds.free; except end;
+  if ds <> nil then
+    try ds.free; except end;
  end;
 end;
 
-class function TFireDacHelper.OpenQu(FDConn: TFDConnection; Qu: String;
-  Params: TStrings; AutoOpen: Boolean; LocaleSettings,
-  NumericDisplayFormat: String): TDataSet;
+class function TFireDacHelper.GetImpostazioneAsExtended(FDConn: TFDConnection;
+  costante, DefaultValue: String): Extended;
+var
+  ds: TdataSet;
+begin
+ ds := nil;
+ result := 0;
+ try
+    ds := OpenQu(FDConn, 'select cast(result as float) from GET_IMPOSTAZIONE('''
+      + costante + ''',''' + DefaultValue + ''',''NUMERIC'')');
+    ds.Open;
+    if ds.Fields[0].IsNull then
+      Result := 0
+    Else
+      Result := ds.Fields[0].AsExtended;
+
+    ds.Close;
+ finally
+  if ds <> nil then
+    try ds.free; except end;
+ end;
+end;
+
+class function TFireDacHelper.GetImpostazioneAsInteger(FDConn: TFDConnection;
+  costante : String; DefaultValue: Integer): Integer;
+var
+  ds: TdataSet;
+begin
+ ds := nil;
+ result := 0;
+ try
+    ds := OpenQu(FDConn, 'select cast(result as integer) from GET_IMPOSTAZIONE('''
+      + costante + ''',''' + DefaultValue.ToString + ''',''NUMERIC'')');
+    ds.Open;
+    if ds.Fields[0].IsNull then
+      Result := 0
+    Else
+      Result := ds.Fields[0].AsInteger;
+
+    ds.Close;
+ finally
+  if ds <> nil then
+    try ds.free; except end;
+ end;
+end;
+
+
+class Function TFireDacHelper.OpenQu(FDConn : TFDConnection;Qu : String;
+Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '0.00';maxFieldDisplaySize : Integer = 40; onlyPrepareDS : Boolean = false) : TDataSet;
 var
   FDQu: TFDQuery;
   I: Integer;
   m: Integer;
-//  Par : Array of variant;
+  strVal: string;
+  FormatIT: TFormatSettings;
 begin
-  //writelog('open qu: ' + qu,'');
 
   FDQu := TFDQuery.Create(nil);
   FDQu.Connection := FDConn;
   FDQu.SQL.Text := qu;
+  FDQu.Prepare;
+
+  if onlyPrepareDS then
+   Begin
+     result := FDQu;
+     exit;
+   End;
+
+
+
+//
+//  FormatIT := System.SysUtils.FormatSettings;
+
 
   if qu = '' then
    begin
@@ -252,18 +359,24 @@ begin
 
 
 //  FDQu.Prepare;
-  if LocaleSettings <> '' then
-   {$IFDEF MSWINDOWS}
-    GetLocaleFormatSettings(1040, formatSettings);
-   {$ELSE}
-    {$IFDEF IOS}
-      //Macapi.CoreFoundation.LOCALE
-      //GetLocaleFormatSettings(CFLocaleRef 1040, formatSettings);
-      formatSettings := TFormatSettings.Create('it_IT');
-    {$ELSE}
-    GetLocaleFormatSettings('it', formatSettings);
-    {$ENDIF}
-   {$ENDIF}
+  try
+    if LocaleSettings <> '' then
+     {$IFDEF MSWINDOWS}
+      GetLocaleFormatSettings(1040, formatSettings);
+     {$ELSE}
+       {$IFDEF IOS}
+         //Macapi.CoreFoundation.LOCALE
+         //GetLocaleFormatSettings(CFLocaleRef 1040, formatSettings);
+         formatSettings := TFormatSettings.Create('it_IT');
+       {$ELSE}
+//         GetLocaleFormatSettings('it', formatSettings);
+       {$ENDIF}
+     {$ENDIF}
+  except
+
+  end;
+
+
 
   If (FDQu.ParamCount > 0) then
    Begin
@@ -272,10 +385,10 @@ begin
     for I := 0 to FDQu.ParamCount-1 do
      Begin
       FDQu.Params[I].Clear;
-//      FDQu.Params[I].DataType := ftInteger;
       FDQu.Params[I].Bound := True;
-//      FDQu.Params[I].IsNull := True;
      End;
+
+
 
     if Params <> nil then
      for I := 0 to FDQu.ParamCount-1 do
@@ -284,7 +397,47 @@ begin
 
       if m >= 0 then
        Begin
-        FDQu.Params[I].AsString := Params.ValueFromIndex[m].Replace(#10,'').Replace(#13,'').Trim; // [FDQu.Params[I].Name.toLower];
+
+        try
+          strVal := Params.ValueFromIndex[m].Replace(#10,'').Replace(#13,'').Trim; // [FDQu.Params[I].Name.toLower];
+
+
+          if (FDQu.Params[I].DataType in [
+            ftSmallint, ftInteger, ftWord, // 0..4
+            ftFloat, ftCurrency,
+            ftLargeint, ftShortint, ftByte,ftBCD,ftFMTBCD, ftExtended, ftSingle]) then
+            begin
+             if strVal <> '' then
+              Begin
+                strVal :=
+                  strVal.replace('.',formatSettings.DecimalSeparator).replace(',',formatSettings.DecimalSeparator);
+
+                FDQu.Params[I].value := strVal;
+              End
+             Else
+              FDQu.Params[I].Clear;
+            end
+          Else
+            FDQu.Params[I].Value := strVal;
+        except
+          on e:exception do
+           Begin
+             raise Exception.Create('[TFireDacHelper.OpenQu] Error Message:' + e.message);
+           End;
+        end;
+//         on e:exception do
+//          Begin
+////            if FDQu.Params[I].DataType in [
+////            dtInt16, dtInt32, dtInt64,                     // signed int
+////            dtByte, dtUInt16, dtUInt32, dtUInt64,                   // unsinged int
+////            dtSingle, dtDouble, dtExtended,                         // float point numbers
+////            dtCurrency] then
+////            begin
+////
+////            end
+//
+//          End;
+//        end;
 //        writelog(FDQu.Params[I].Name.toLower + '-->' + FDQu.Params[I].AsString,'');
        End;
      End;
@@ -302,25 +455,30 @@ begin
        Begin
         TNumericField(FDQu.Fields[I]).DisplayFormat :=
          NumericDisplayFormat;
+       End
+      Else if FDQu.Fields[I].DataType in [ftString]  then
+       Begin
+        if TStringField(FDQu.Fields[I]).DisplayWidth > maxFieldDisplaySize then
+          TStringField(FDQu.Fields[I]).DisplayWidth := maxFieldDisplaySize;
        End;
      End;
   except
    on e:exception do
     Begin
-//     writelog('errore apertura query[' +qu + ']' + e.message,'');
      raise Exception.Create('errore apertura query[' +qu + ']' + e.message);
     End;
   end;
 
-//  writelog(FDQu.RecordCount.ToString);
+
   Result := FDQu;
 end;
 
 
-class Function TFireDacHelper.OpenQuByName(FDConn : TFDConnection;QuName : String;fk_custom_report : Int64;Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '###,###.00') : TDataSet;
+class Function TFireDacHelper.OpenQuByName(FDConn : TFDConnection;QuName : String;fk_custom_report : Int64;Params : TStrings = nil;AutoOpen : Boolean = True;LocaleSettings : String = 'it';NumericDisplayFormat : String = '0.00';maxFieldDisplaySize : Integer = 40) : TDataSet;
 var
   query: string;
 begin
+  { TODO : Inserire l'apertura di dataset provenienti da external provider }
   QuName := QuName.toupper;
 
   query := TFireDacHelper.quReadFirstField(FDConn,
@@ -331,11 +489,11 @@ begin
   if query = '' then
    raise Exception.Create('custom query named [' + quName + ']');
 
-  result := TFireDacHelper.OpenQu(FDConn,query,Params,AutoOpen,LocaleSettings,NumericDisplayFormat);
+  result := TFireDacHelper.OpenQu(FDConn,query,Params,AutoOpen,LocaleSettings,NumericDisplayFormat,maxFieldDisplaySize);
 end;
 
 class function TFireDacHelper.quReadFirstField(FDConn: TFDConnection;
-  Qu: String): String;
+  Qu: String; raiseExceptionIfNoRecordsFound : Boolean = False): String;
 var
   ds: TDataSet;
 begin
@@ -344,8 +502,22 @@ begin
  try
    ds := OpenQu(FDConn,Qu,nil);
    if ds.RecordCount > 0 then
-    if ds.FieldCount > 0 then
-     Result := ds.Fields[0].AsString;
+   Begin
+      if ds.FieldCount > 0 then
+       Begin
+        Result := ds.Fields[0].AsString;
+       End
+      Else
+       Begin
+        if raiseExceptionIfNoRecordsFound  then
+          raise Exception.Create('Error field not found on query: ' + Qu);
+       End;
+   End
+   Else
+   Begin
+      if raiseExceptionIfNoRecordsFound  then
+        raise Exception.Create('Error no record found for query: ' + Qu);
+   End;
  finally
    try
     if ds <> nil then
@@ -356,11 +528,10 @@ begin
    try
     if ds <> nil then
       ds.Free;
+    ds := nil;
    except
 
    end;
-
-
  end;
 end;
 
@@ -397,6 +568,17 @@ begin
   ExecQu(FDConn,'execute procedure SET_IMPOSTAZIONE(''' + costante + ''', '''+ Value +''', ''STRING'')' );
  finally
  end;
+end;
+
+class procedure TFireDacHelper.stdFieldDispW(ds: TDataSet);
+var
+  I: Integer;
+begin
+ for I := 0 to ds.FieldCount-1 do
+  if ds.Fields[I].DisplayWidth > 30 then
+   ds.Fields[I].DisplayWidth := 30;
+
+
 end;
 
 class function TFireDacHelper.StringToParams(paramsString: String): TStringList;
