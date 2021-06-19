@@ -253,14 +253,19 @@ begin
       Else
         Value := TS[I];
 
-      contentHtml := contentHtml.Replace('{*' + I.ToString + '*}', Value);
+
+
+//      TEncoding.UTF8.de
+
+      contentHtml := contentHtml.Replace('{*' + I.ToString + '*}', UTF8Decode(Value) );
 
       if Name <> '' then
        begin
-        contentHtml := contentHtml.Replace('{*' + Name.toUpper + '*}', Value);
+        contentHtml := contentHtml.Replace('{*' + Name.toUpper + '*}', UTF8Decode(Value) );
        end;
 
     End;
+//    contentHtml := UTF8Decode(contentHtml);
  finally
    TS.Free;
  end;

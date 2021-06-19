@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{D8D255E4-BCC2-4633-A69E-24AABDF4188B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Xtumble4Delphi.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Gestionali\DemoAppXTDesktop\XtumbleDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="Xtumble4Delphi">
+        <MSBuild Projects="Xtumble4Delphi.dproj"/>
+    </Target>
+    <Target Name="Xtumble4Delphi:Clean">
+        <MSBuild Projects="Xtumble4Delphi.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Xtumble4Delphi:Make">
+        <MSBuild Projects="Xtumble4Delphi.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="XtumbleDemo">
+        <MSBuild Projects="..\..\Gestionali\DemoAppXTDesktop\XtumbleDemo.dproj"/>
+    </Target>
+    <Target Name="XtumbleDemo:Clean">
+        <MSBuild Projects="..\..\Gestionali\DemoAppXTDesktop\XtumbleDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="XtumbleDemo:Make">
+        <MSBuild Projects="..\..\Gestionali\DemoAppXTDesktop\XtumbleDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="Xtumble4Delphi;XtumbleDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="Xtumble4Delphi:Clean;XtumbleDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="Xtumble4Delphi:Make;XtumbleDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

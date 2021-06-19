@@ -29,7 +29,7 @@ type
  public
    constructor Create(AOwner: TComponent); override;
 
-   procedure buildcustomweb(fk_cartella : int64 = -1);
+   function buildcustomweb(fk_cartella : int64 = -1; fk_allegato : int64 = -1) : String;
 
    function folderExists(fullFolderPath : String; createIfNotExists : Boolean = False) : Int64;
 
@@ -63,6 +63,12 @@ type
 
    function importZipFiles(ParentFolder : String;ArcFileName: String; LogLines : TStrings = nil; progrFunc : TProgressProc = nil; beforeDload: TBeforeDownload = nil;EndDload : TEndDownload = nil): Int64;
 
+   function deleteFile(pk_allegato : Int64) : Boolean;
+
+   function deleteFolder(pk_folder : Int64) : Boolean;
+
+
+
 
  published
    property xtConnection;
@@ -84,21 +90,29 @@ end;
 
 { TxtDriveCommands }
 
-procedure TxtDriveCommands.buildcustomweb(fk_cartella : int64 = -1);
+function TxtDriveCommands.buildcustomweb(fk_cartella : int64 = -1; fk_allegato : int64 = -1) : String;
 var
   respo: IHTTPResponse;
   filtro: string;
 begin
   filtro := '';
+  result := '';
   if fk_cartella > 0 then
    filtro := 'fk_cartella=' + fk_cartella.ToString;
+
+  if fk_allegato > 0 then
+   filtro := 'pk_allegato=' + fk_allegato.ToString;
+
+
 
   respo := HTTPprov.doGet(xtConnection.ConnectionParams,TxtServices.buildcustomweb,filtro);
 
   if (respo.StatusCode < 200) or (respo.StatusCode > 299) then
    Begin
      raise Exception.Create('Error on building web[' + respo.StatusCode.ToString + ']: ' + respo.ContentAsString);
-   End;
+   End
+  Else
+   result := respo.ContentAsString;
 
 
 end;
@@ -156,6 +170,61 @@ begin
   inherited;
 
 end;
+
+function TxtDriveCommands.deleteFile(pk_allegato: Int64): Boolean;
+var
+  TS: TStringList;
+  xtDSFiles: TxtDatasetEntity;
+begin
+  TS := TStringList.Create;
+  { TODO : sostituire con la locate su xtDSFiles oppure aggiungere un comendo sulla classe xtDrive}
+  TS.Values['PK_ID'] := pk_allegato.ToString;
+  TS.Values['DELETED'] := 'S';
+  TS.Values['xtEntity'] := 'files';
+
+
+  xtDSFiles:= TxtDatasetEntity.Create(Self);
+  xtDSFiles.xtConnection := Self.xtConnection;
+  xtDSFiles.xtEntityName := 'files';
+  xtDSFiles.customPost(TS,nil);
+//  xtDSFiles.Close;
+//  xtDSFiles.Open;
+  TS.Free;
+  xtDSFiles.Free;
+end;
+
+function TxtDriveCommands.deleteFolder(pk_folder: Int64): Boolean;
+var
+
+  xtDSFolder: TxtDatasetEntity;
+begin
+  //   ((C.PK_FOLDER = :PK_FOLDER)OR(:PK_FOLDER IS NULL))
+
+  { TODO : sostituire con la locate su xtDSFiles oppure aggiungere un comendo sulla classe xtDrive}
+
+  xtDSFolder:= TxtDatasetEntity.Create(Self);
+  xtDSFolder.xtApplyUpdateAfterDelete := True;
+  xtDSFolder.xtApplyUpdateAfterPost := True;
+
+  xtDSFolder.xtParams.Clear;
+
+  xtDSFolder.xtParams.Values['pk_folder'] := pk_folder.ToString;
+
+  xtDSFolder.xtConnection := Self.xtConnection;
+  xtDSFolder.xtEntityName := 'folders';
+  xtDSFolder.Open;
+  xtDSFolder.First;
+
+  if xtDSFolder.RecordCount < 1 then
+   raise Exception.Create('Folder not found');
+
+  xtDSFolder.Delete;
+  xtDSFolder.Close;
+  xtDSFolder.Free;
+end;
+
+
+
 
 function TxtDriveCommands.dloadFile(fileName: String; aspSize: Integer;
   retriveInformation: Boolean): TRecAllegatoProp;
@@ -258,12 +327,19 @@ begin
     result.ms.LoadFromFile(result.CacheFileName);
     result.ms.Position := 0;
     result.FileSize := result.ms.Size;
+    result.Downloaded := True;
+
     Exit;
    end
   Else
    Begin
       try
         respo := HTTPprov.doGet(xtConnection.ConnectionParams,TxtServices.DownloadAttachment,'docId=' + IntToStr(pk_id));
+
+        result.Downloaded :=
+         (respo.StatusCode > 199) and (respo.StatusCode < 300);
+
+
         Result.MS := TMemoryStream.Create;
         Result.MS.LoadFromStream(respo.ContentStream);
 
@@ -276,7 +352,7 @@ begin
              result.ms.SaveToFile(result.CacheFileName);
              result.ms.Position := 0;
             except
-
+             result.Downloaded := False;
             end;
            end;
           (*Else

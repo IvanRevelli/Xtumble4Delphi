@@ -107,6 +107,7 @@ begin
     FDConn.Params.add('Password=' + DataBaseConnectionParam.password);
   //  FDConn.Params.Values['Protocol'] := DataBaseConnectionParam.protocolAsString;
     FDConn.Params.Values['Database'] := DatabaseLocationFullPath;
+    FDConn.Params.Values['CharacterSet'] := 'utf8';
     FDConn.Params.add('DriverID=IBLite');
   {$ELSE}
 
@@ -121,6 +122,7 @@ begin
       FDConn.Params.add('Password=' + DataBaseConnectionParam.password);
 //      FDConn.Params.Values['Protocol'] := DataBaseConnectionParam.protocolAsString;
       FDConn.Params.Values['Database'] := DatabaseLocationFullPath;
+      FDConn.Params.Values['CharacterSet'] := 'utf8';
       FDConn.Params.add('DriverID=IBLite');
      End
     Else if DataBaseConnectionParam.connection_protocol  = cpIBTCP then
@@ -136,6 +138,7 @@ begin
         FDConn.Params.Values['Port'] := DataBaseConnectionParam.serverPort;
       //  FDConn.Params.Values['Database'] :=  TPath.Combine(dmmain.appPath, 'xtumble.gdb');
         FDConn.Params.Values['Database'] :=  DatabaseLocationFullPath;
+        FDConn.Params.Values['CharacterSet'] := 'utf8';
         FDConn.Params.add('DriverID=IB');
      End
     Else if DataBaseConnectionParam.connection_protocol  = cpFBTCP then
@@ -151,6 +154,7 @@ begin
         FDConn.Params.Values['Port'] := DataBaseConnectionParam.serverPort;
       //  FDConn.Params.Values['Database'] :=  TPath.Combine(dmmain.appPath, 'xtumble.gdb');
         FDConn.Params.Values['Database'] :=  DatabaseLocationFullPath;
+        FDConn.Params.Values['CharacterSet'] := 'utf8';
         FDConn.Params.add('DriverID=FB');
      End
     Else if DataBaseConnectionParam.connection_protocol  = cpFBEmbedded then
@@ -160,6 +164,7 @@ begin
         FDConn.Params.Clear;
         FDConn.Params.add('');
         FDConn.Params.add('User_Name=' + DataBaseConnectionParam.userName);
+        FDConn.Params.Values['CharacterSet'] := 'utf8';
 //        FDConn.Params.add('Password=' + DataBaseConnectionParam.password);
 //        FDConn.Params.Values['Protocol'] := 'local';
 //        FDConn.Params.Values['Server'] := '';
@@ -181,6 +186,7 @@ begin
         FDConn.Params.Values['Protocol'] := DataBaseConnectionParam.protocolAsString;
         FDConn.Params.Values['Server'] := DataBaseConnectionParam.ServerAddress;
         FDConn.Params.Values['Port'] := DataBaseConnectionParam.serverPort;
+        FDConn.Params.Values['CharacterSet'] := 'utf8';
       //  FDConn.Params.Values['Database'] :=  TPath.Combine(dmmain.appPath, 'xtumble.gdb');
         FDConn.Params.Values['Database'] :=  DatabaseLocationFullPath;
         FDConn.Params.add('DriverID=IB');
