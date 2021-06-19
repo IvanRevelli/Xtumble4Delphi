@@ -6,7 +6,7 @@ object dmXtumble: TdmXtumble
   object XtConnection: TXtConnection
     readOnlyDatabase = False
     Connected = False
-    ConnectionURL = 'http://192.168.1.52:8888'
+    ConnectionURL = 'http://192.168.70.52:8888'
     userName = 'DEMO'
     password = 'DEMO2019'
     CompanyID = 'DEMO0000000'

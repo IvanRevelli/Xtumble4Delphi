@@ -19,7 +19,7 @@ object frmDrive: TfrmDrive
     Left = 251
     Top = 47
     Width = 4
-    Height = 556
+    Height = 574
     ExplicitLeft = 392
     ExplicitTop = 31
     ExplicitHeight = 395
@@ -41,14 +41,13 @@ object frmDrive: TfrmDrive
     ParentBackground = False
     ParentFont = False
     TabOrder = 0
-    ExplicitWidth = 970
   end
   object tvFolders: TTreeView
     AlignWithMargins = True
     Left = 10
     Top = 57
     Width = 231
-    Height = 536
+    Height = 554
     Margins.Left = 10
     Margins.Top = 10
     Margins.Right = 10
@@ -60,33 +59,44 @@ object frmDrive: TfrmDrive
     RowSelect = True
     TabOrder = 1
     OnChange = tvFoldersChange
-    ExplicitHeight = 440
   end
   object Panel2: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 606
+    Top = 624
     Width = 1053
-    Height = 52
+    Height = 34
     Align = alBottom
     TabOrder = 2
-    ExplicitTop = 510
-    ExplicitWidth = 970
+    object SearchBox1: TSearchBox
+      AlignWithMargins = True
+      Left = 6
+      Top = 6
+      Width = 180
+      Height = 22
+      Margins.Left = 5
+      Margins.Top = 5
+      Margins.Right = 5
+      Margins.Bottom = 5
+      Align = alLeft
+      TabOrder = 0
+      Text = 'SearchBox1'
+      OnInvokeSearch = SearchBox1InvokeSearch
+      ExplicitHeight = 21
+    end
   end
   object Panel3: TPanel
     AlignWithMargins = True
     Left = 265
     Top = 57
     Width = 784
-    Height = 536
+    Height = 554
     Margins.Left = 10
     Margins.Top = 10
     Margins.Right = 10
     Margins.Bottom = 10
     Align = alClient
     TabOrder = 3
-    ExplicitWidth = 701
-    ExplicitHeight = 440
     object pnlCurrentFolder: TPanel
       AlignWithMargins = True
       Left = 11
@@ -107,14 +117,13 @@ object frmDrive: TfrmDrive
       ParentFont = False
       TabOrder = 0
       OnClick = pnlCurrentFolderClick
-      ExplicitWidth = 679
     end
     object lvFiles: TListView
       AlignWithMargins = True
       Left = 11
       Top = 163
       Width = 762
-      Height = 219
+      Height = 237
       Margins.Left = 10
       Margins.Top = 10
       Margins.Right = 10
@@ -155,7 +164,6 @@ object frmDrive: TfrmDrive
       OnCustomDrawItem = lvFilesCustomDrawItem
       OnDblClick = lvFilesDblClick
       OnSelectItem = lvFilesSelectItem
-      ExplicitLeft = 13
     end
     object ToolBar1: TToolBar
       AlignWithMargins = True
@@ -173,7 +181,6 @@ object frmDrive: TfrmDrive
       Images = VirtualImageList1
       ShowCaptions = True
       TabOrder = 2
-      ExplicitWidth = 679
       object ToolButton1: TToolButton
         Left = 0
         Top = 0
@@ -245,7 +252,7 @@ object frmDrive: TfrmDrive
     end
     object gbDetail: TGroupBox
       Left = 1
-      Top = 392
+      Top = 410
       Width = 782
       Height = 143
       Align = alBottom
@@ -263,7 +270,6 @@ object frmDrive: TfrmDrive
         Margins.Bottom = 10
         Align = alClient
         TabOrder = 0
-        ExplicitHeight = 86
         DesignSize = (
           758
           116)
@@ -279,7 +285,6 @@ object frmDrive: TfrmDrive
           Margins.Right = 5
           Margins.Bottom = 5
           Align = alBottom
-          Alignment = taCenter
           AutoSize = False
           Caption = 'https://xtumble.com/dashboard.php'
           Font.Charset = DEFAULT_CHARSET
@@ -323,7 +328,6 @@ object frmDrive: TfrmDrive
           Margins.Right = 5
           Margins.Bottom = 5
           Align = alBottom
-          Alignment = taCenter
           AutoSize = False
           Caption = 'https://xtumble.com/dashboard.php'
           Font.Charset = DEFAULT_CHARSET
@@ -351,7 +355,6 @@ object frmDrive: TfrmDrive
           StateCaptions.CaptionOff = 'Private'
           TabOrder = 0
           OnClick = swPrivateClick
-          ExplicitLeft = 574
         end
       end
     end
@@ -369,7 +372,6 @@ object frmDrive: TfrmDrive
       Alignment = taCenter
       Caption = '-'
       TabOrder = 4
-      ExplicitWidth = 679
     end
   end
   object xtDsFolders: TxtDatasetEntity
@@ -428,6 +430,7 @@ object frmDrive: TfrmDrive
     xtMaxRecords = 1000
     AfterOpen = xtDSFilesAfterOpen
     FieldDefs = <>
+    CachedUpdates = True
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
     FetchOptions.Mode = fmAll

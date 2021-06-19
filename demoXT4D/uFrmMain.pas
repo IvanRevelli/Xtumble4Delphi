@@ -13,7 +13,7 @@ type
   TfrmMain = class(TForm)
     CategoryPanelGroup1: TCategoryPanelGroup;
     cpXtumbeERP: TCategoryPanel;
-    XtumbleSettings: TCategoryPanel;
+    cpxtSettings: TCategoryPanel;
     StatusBar1: TStatusBar;
     MainMenu1: TMainMenu;
     btnArticles: TButton;
@@ -34,6 +34,9 @@ type
     btnMails: TButton;
     btnMailTemplates: TButton;
     btnMailingList: TButton;
+    cpxtSubscriiptions: TCategoryPanel;
+    btnSubscriptions: TButton;
+    btnOrders: TButton;
     procedure btnDashboardClick(Sender: TObject);
     procedure btnContactsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -45,6 +48,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnMailTemplates_Click(Sender: TObject);
     procedure btnMailingListClick(Sender: TObject);
+    procedure btnOrdersClick(Sender: TObject);
   private
     
     { Private declarations }
@@ -60,7 +64,7 @@ implementation
 
 {$R *.dfm}
 
-uses TypInfo, Rtti;
+uses TypInfo, Rtti, uFrmShopOrders;
 
 procedure TfrmMain.btnArticlesClick(Sender: TObject);
 begin
@@ -141,6 +145,17 @@ begin
   frmMailTemplates.Show;
 end;
 
+
+procedure TfrmMain.btnOrdersClick(Sender: TObject);
+begin
+ if frmShopOrders = nil then
+  begin
+    frmShopOrders := TfrmShopOrders.Create(nil);
+    dmXtumble.embedForm(frmShopOrders, pnlMain);
+  end
+ else
+    frmShopOrders.Show;
+end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin

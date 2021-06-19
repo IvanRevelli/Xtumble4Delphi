@@ -31,11 +31,127 @@ object frmMain: TfrmMain
     HeaderFont.Name = 'Tahoma'
     HeaderFont.Style = []
     TabOrder = 0
+    object cpxtSettings: TCategoryPanel
+      Top = 561
+      Height = 80
+      Caption = 'Settings'
+      TabOrder = 0
+      ExplicitTop = 513
+      object btnSettings: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 10
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Settings'
+        TabOrder = 0
+      end
+    end
+    object cpxtSubscriiptions: TCategoryPanel
+      Top = 480
+      Height = 81
+      Caption = 'Subscriptions Manager'
+      TabOrder = 1
+      ExplicitTop = 432
+      object btnSubscriptions: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 10
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Subscriptions'
+        TabOrder = 0
+      end
+    end
+    object CategoryPanel1: TCategoryPanel
+      Top = 352
+      Height = 128
+      Caption = 'Cloud Tools'
+      TabOrder = 2
+      ExplicitTop = 304
+      object btnDrive: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 10
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Drive'
+        TabOrder = 0
+        OnClick = btnDriveClick
+      end
+    end
+    object cpCRM: TCategoryPanel
+      Top = 193
+      Height = 159
+      Caption = 'CRM Tools'
+      TabOrder = 3
+      ExplicitTop = 145
+      object btnMails: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 45
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Mails / CRM'
+        TabOrder = 0
+        OnClick = btnMails_Click
+      end
+      object btnMailTemplates: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 80
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Mail Templates'
+        TabOrder = 1
+        OnClick = btnMailTemplates_Click
+      end
+      object btnMailingList: TButton
+        AlignWithMargins = True
+        Left = 10
+        Top = 10
+        Width = 174
+        Height = 25
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Mailing Contacts / Lists'
+        TabOrder = 2
+        OnClick = btnMailingListClick
+      end
+    end
     object cpXtumbeERP: TCategoryPanel
       Top = 0
-      Height = 178
+      Height = 193
       Caption = 'Xtumble ERP'
-      TabOrder = 0
+      TabOrder = 4
       object btnArticles: TButton
         AlignWithMargins = True
         Left = 10
@@ -81,17 +197,10 @@ object frmMain: TfrmMain
         TabOrder = 2
         OnClick = btnDashboardClick
       end
-    end
-    object XtumbleSettings: TCategoryPanel
-      Top = 488
-      Height = 120
-      Caption = 'Settings'
-      TabOrder = 1
-      ExplicitTop = 329
-      object btnSettings: TButton
+      object btnOrders: TButton
         AlignWithMargins = True
         Left = 10
-        Top = 10
+        Top = 115
         Width = 174
         Height = 25
         Margins.Left = 10
@@ -99,86 +208,10 @@ object frmMain: TfrmMain
         Margins.Right = 10
         Margins.Bottom = 0
         Align = alTop
-        Caption = 'Settings'
-        TabOrder = 0
-      end
-    end
-    object CategoryPanel1: TCategoryPanel
-      Top = 337
-      Height = 151
-      Caption = 'Cloud Tools'
-      TabOrder = 2
-      ExplicitTop = 172
-      ExplicitWidth = 185
-      object btnDrive: TButton
-        AlignWithMargins = True
-        Left = 10
-        Top = 10
-        Width = 174
-        Height = 25
-        Margins.Left = 10
-        Margins.Top = 10
-        Margins.Right = 10
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Drive'
-        TabOrder = 0
-        OnClick = btnDriveClick
-      end
-    end
-    object cpCRM: TCategoryPanel
-      Top = 178
-      Height = 159
-      Caption = 'CRM Tools'
-      TabOrder = 3
-      object btnMails: TButton
-        AlignWithMargins = True
-        Left = 10
-        Top = 45
-        Width = 174
-        Height = 25
-        Margins.Left = 10
-        Margins.Top = 10
-        Margins.Right = 10
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Mails / CRM'
-        TabOrder = 0
-        OnClick = btnMails_Click
-        ExplicitTop = 80
-      end
-      object btnMailTemplates: TButton
-        AlignWithMargins = True
-        Left = 10
-        Top = 80
-        Width = 174
-        Height = 25
-        Margins.Left = 10
-        Margins.Top = 10
-        Margins.Right = 10
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Mail Templates'
-        TabOrder = 1
-        OnClick = btnMailTemplates_Click
-        ExplicitTop = 106
-      end
-      object btnMailingList: TButton
-        AlignWithMargins = True
-        Left = 10
-        Top = 10
-        Width = 174
-        Height = 25
-        Margins.Left = 10
-        Margins.Top = 10
-        Margins.Right = 10
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Mailing Contacts / Lists'
-        TabOrder = 2
-        OnClick = btnMailingListClick
-        ExplicitLeft = 18
-        ExplicitTop = 53
+        Caption = 'E-Commerce Orders'
+        TabOrder = 3
+        OnClick = btnOrdersClick
+        ExplicitTop = 140
       end
     end
   end

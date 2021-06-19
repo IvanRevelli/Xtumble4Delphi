@@ -140,6 +140,8 @@ type
     Label4: TLabel;
     srcContacts: TSearchBox;
     tlBtnLoadFromSysTemplate: TToolButton;
+    Sendtoselectedaddress1: TMenuItem;
+    tlBtnAggiungiIndirizzo: TToolButton;
     procedure xtDsCampaignsAfterOpen(DataSet: TDataSet);
     procedure Addfolder1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -171,6 +173,8 @@ type
     procedure srcContactsInvokeSearch(Sender: TObject);
     procedure Deletefolder1Click(Sender: TObject);
     procedure tlBtnLoadFromSysTemplateClick(Sender: TObject);
+    procedure Sendtoselectedaddress1Click(Sender: TObject);
+    procedure tlBtnAggiungiIndirizzoClick(Sender: TObject);
   private
     Fcurrent_campaign_name : String;
     Fcurrent_campaign_id: Int64;
@@ -492,6 +496,19 @@ begin
     MemoBody.Lines.SaveToFile(dmXtumble.FSD.FileName);
 end;
 
+procedure TfrmMails.Sendtoselectedaddress1Click(Sender: TObject);
+var
+  LtmpMsg: TMAIL_BATCH;
+  pk_mail_batch: Int64;
+begin
+  LtmpMsg := current_mail_template;
+  LtmpMsg.MAIL_TO := xtDsCampContactsMAIL.AsString;
+  pk_mail_batch := xtSendMail1.enqueMailMessage(LtmpMsg);
+  xtDsCampContacts.Edit;
+  xtDsCampContactsFK_MAIL_BATCH.AsLargeInt := pk_mail_batch;
+  xtDsCampContacts.Post;
+end;
+
 procedure TfrmMails.Setcurrent_campaign_id(const Value: Int64);
 begin
  if Fcurrent_campaign_id <> Value then
@@ -516,6 +533,11 @@ begin
 
     xtDsCampContacts.xtParams.Values['FK_CAMPAIGN'] := Fcurrent_campaign_id.ToString;
     xtDsCampContacts.Open;
+
+    if PageControl1.ActivePage = tsAvailableContacts then
+     Begin
+       openAvailableContacts;
+     End;
   End;
 end;
 
@@ -549,6 +571,19 @@ begin
    xtDSContacts.Filtered := True;
   End;
 
+end;
+
+procedure TfrmMails.tlBtnAggiungiIndirizzoClick(Sender: TObject);
+var
+  mailAdd: string;
+begin
+ if inputQuery('mail address:','reciver mail address:',mailAdd) then
+  Begin
+   xtDsCampContacts.Append;
+   xtDsCampContactsFK_CAMPAIGN.AsLargeInt := Fcurrent_campaign_id;
+   xtDsCampContactsADDRESS.AsString := mailAdd;
+   xtDsCampContacts.Post;
+  End;
 end;
 
 procedure TfrmMails.tlBtnLoadFromSysTemplateClick(Sender: TObject);
@@ -615,7 +650,7 @@ begin
    begin
     bk := dbgContacts.SelectedRows[I];
     xtDSContacts.GotoBookmark(bk);
-    ShowMessage(xtDSContactsMAIL.AsString);
+
     xtDsCampContacts.Insert;
     xtDsCampContactsFK_CAMPAIGN.AsLargeInt := Fcurrent_campaign_id;
     xtDsCampContactsFK_CRM_CONTACT.AsLargeInt := xtDSContactsPK_ID.AsLargeInt;

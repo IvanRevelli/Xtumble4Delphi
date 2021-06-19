@@ -20,7 +20,10 @@ uses
   uCommon in 'uCommon.pas',
   uFrmMailTemplate in 'uFrmMailTemplate.pas' {frmMailTemplate},
   uFrmMailTemplates in 'uFrmMailTemplates.pas' {frmMailTemplates},
-  uFrmMailingList in 'uFrmMailingList.pas' {frmMailingList};
+  uFrmMailingList in 'uFrmMailingList.pas' {frmMailingList},
+  uFrmDriveSearch in 'uFrmDriveSearch.pas' {frmDriveSearch},
+  uFrmSubscriptions in 'uFrmSubscriptions.pas' {frmSubscriptions},
+  uFrmShopOrders in 'uFrmShopOrders.pas' {frmShopOrders};
 
 {$R *.res}
 

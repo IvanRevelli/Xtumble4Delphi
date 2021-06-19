@@ -363,7 +363,7 @@ object frmMails: TfrmMails
           Margins.Right = 10
           Margins.Bottom = 0
           ButtonHeight = 52
-          ButtonWidth = 45
+          ButtonWidth = 113
           Caption = 'ToolBar1'
           Images = dmXtumble.VirtualImageList1
           ShowCaptions = True
@@ -375,6 +375,14 @@ object frmMails: TfrmMails
             ImageIndex = 21
             ImageName = 'Refresh_40px'
             OnClick = ToolButton5Click
+          end
+          object tlBtnAggiungiIndirizzo: TToolButton
+            Left = 113
+            Top = 0
+            Caption = 'Add Address Manually'
+            ImageIndex = 0
+            ImageName = 'Check File_50px'
+            OnClick = tlBtnAggiungiIndirizzoClick
           end
         end
       end
@@ -464,8 +472,6 @@ object frmMails: TfrmMails
           Margins.Right = 10
           Align = alTop
           TabOrder = 2
-          ExplicitLeft = -2
-          ExplicitTop = 61
           object lblMailingList: TLabel
             Left = 332
             Top = 6
@@ -534,8 +540,6 @@ object frmMails: TfrmMails
       TabOrder = 0
       ViewStyle = vsReport
       OnClick = lvCampaignsClick
-      ExplicitLeft = 9
-      ExplicitTop = 66
     end
     object ToolBar4: TToolBar
       AlignWithMargins = True
@@ -965,6 +969,10 @@ object frmMails: TfrmMails
     object Resetsentflag1: TMenuItem
       Caption = 'Reset sent flag'
       OnClick = Resetsentflag1Click
+    end
+    object Sendtoselectedaddress1: TMenuItem
+      Caption = 'Send to selected address'
+      OnClick = Sendtoselectedaddress1Click
     end
   end
   object popReports: TPopupMenu

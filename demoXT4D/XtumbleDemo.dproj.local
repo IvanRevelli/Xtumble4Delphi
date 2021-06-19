@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2020/10/19 00:16:10.000.001,C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Project3.dproj=C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Project3.dproj</Transaction>
+    <Transaction>2020/10/19 11:12:48.000.571,E:\Progetti\Gestionali\DemoAppXTDesktop\XtumbleDemo.dproj=C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Project3.dproj</Transaction>
+    <Transaction>2020/10/19 11:13:38.000.378,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMain.dfm=C:\Users\Ivan Revelli\Documents\Embarcadero\Studio\Projects\Unit4.dfm</Transaction>
+    <Transaction>2020/10/19 11:14:01.000.889,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmUsers.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm</Transaction>
+    <Transaction>2020/10/19 11:14:27.000.540,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmContacts.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit2.dfm</Transaction>
+    <Transaction>2020/10/19 11:14:48.000.082,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmArticles.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit4.dfm</Transaction>
+    <Transaction>2020/10/19 11:15:07.000.015,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmDrive.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit5.dfm</Transaction>
+    <Transaction>2020/10/19 11:15:21.000.670,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMails.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit6.dfm</Transaction>
+    <Transaction>2020/10/19 11:15:50.000.137,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmSettings.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit7.dfm</Transaction>
+    <Transaction>2020/10/19 11:47:21.000.671,E:\Progetti\Gestionali\DemoAppXTDesktop\uDashboard.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm</Transaction>
+    <Transaction>2020/10/19 12:23:50.000.402,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmLogin.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm</Transaction>
+    <Transaction>2020/10/19 12:29:18.000.011,E:\Progetti\Gestionali\DemoAppXTDesktop\pasDmXtumble.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm</Transaction>
+    <Transaction>2020/10/19 16:37:34.000.688,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmCreateXTAccount.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm</Transaction>
+    <Transaction>2020/10/28 15:59:57.000.563,E:\Progetti\Gestionali\DemoAppXTDesktop\uDashboard.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\ufrmDashboard.dfm</Transaction>
+    <Transaction>2020/10/30 18:56:57.000.533,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMailComposer.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit2.dfm</Transaction>
+    <Transaction>2020/11/11 13:04:52.000.423,E:\Progetti\Gestionali\DemoAppXTDesktop\Unit2.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMailTemplate.dfm</Transaction>
+    <Transaction>2020/11/11 13:05:21.000.579,E:\Progetti\Gestionali\DemoAppXTDesktop\Unit2.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMailTemplates.dfm</Transaction>
+    <Transaction>2020/12/19 19:02:27.000.129,E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmMailingList.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\Unit5.dfm</Transaction>
+    <Transaction>2021/03/20 15:33:42.000.541,E:\Progetti\Gestionali\DemoAppXTDesktop\Unit1.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmSubscriptions.dfm</Transaction>
+    <Transaction>2021/04/02 18:59:04.000.638,E:\Progetti\Gestionali\DemoAppXTDesktop\Unit4.dfm=E:\Progetti\Gestionali\DemoAppXTDesktop\uFrmShopOrders.dfm</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="uFrmMain.pas"/>
+    <File Path="uFrmMain.dfm"/>
+    <File Path="uFrmUsers.pas"/>
+    <File Path="uFrmUsers.dfm"/>
+    <File Path="uFrmContacts.pas"/>
+    <File Path="uFrmContacts.dfm"/>
+    <File Path="uFrmArticles.pas"/>
+    <File Path="uFrmArticles.dfm"/>
+    <File Path="uFrmDrive.pas"/>
+    <File Path="uFrmDrive.dfm"/>
+    <File Path="uFrmMails.pas"/>
+    <File Path="uFrmMails.dfm"/>
+    <File Path="uFrmSettings.pas"/>
+    <File Path="uFrmSettings.dfm"/>
+    <File Path="ufrmDashboard.pas"/>
+    <File Path="ufrmDashboard.dfm"/>
+    <File Path="uFrmLogin.pas"/>
+    <File Path="uFrmLogin.dfm"/>
+    <File Path="pasDmXtumble.pas"/>
+    <File Path="pasDmXtumble.dfm"/>
+    <File Path="uVCLUtils.pas"/>
+    <File Path="uFrmCreateXTAccount.pas"/>
+    <File Path="uFrmCreateXTAccount.dfm"/>
+    <File Path="uFrmMailComposer.pas"/>
+    <File Path="uFrmMailComposer.dfm"/>
+    <File Path="uCommon.pas"/>
+    <File Path="uFrmMailTemplate.pas"/>
+    <File Path="uFrmMailTemplate.dfm"/>
+    <File Path="uFrmMailTemplates.pas"/>
+    <File Path="uFrmMailTemplates.dfm"/>
+    <File Path="uFrmMailingList.pas"/>
+    <File Path="uFrmMailingList.dfm"/>
+    <File Path="uFrmDriveSearch.pas"/>
+    <File Path="uFrmDriveSearch.dfm"/>
+    <File Path="uFrmSubscriptions.pas"/>
+    <File Path="uFrmSubscriptions.dfm"/>
+    <File Path="uFrmShopOrders.pas"/>
+    <File Path="uFrmShopOrders.dfm"/>
+  </ProjectSortOrder>
+</BorlandProject>

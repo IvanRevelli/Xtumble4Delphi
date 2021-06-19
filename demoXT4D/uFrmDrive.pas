@@ -10,7 +10,8 @@ uses
   Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, xtDatasetEntity, Vcl.Menus,
   uXtDriveCommands, Vcl.Grids, Vcl.DBGrids, System.ImageList, Vcl.ImgList,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection,
-  Vcl.ToolWin, uxtCommonComponent, Vcl.WinXCtrls, uFrmMailComposer, uCommon;
+  Vcl.ToolWin, uxtCommonComponent, Vcl.WinXCtrls, uFrmMailComposer, uCommon,
+  uFrmDriveSearch;
 
 type
 
@@ -88,6 +89,7 @@ type
     popCopiaLink: TPopupMenu;
     CopyLinkorText1: TMenuItem;
     lblPublicURLbyName: TLabel;
+    SearchBox1: TSearchBox;
     procedure FormCreate(Sender: TObject);
     procedure Addfolder1Click(Sender: TObject);
     procedure Deletefolder1Click(Sender: TObject);
@@ -115,6 +117,7 @@ type
     procedure Renamefolder1Click(Sender: TObject);
     procedure Comparecontentwithlocalfile1Click(Sender: TObject);
     procedure CopyLinkorText1Click(Sender: TObject);
+    procedure SearchBox1InvokeSearch(Sender: TObject);
   private
     FCURRENT_PK_ID: Int64;
     FcurrentFolder: TEntityNode;
@@ -255,9 +258,9 @@ end;
 
 procedure TfrmDrive.DeleteFile1Click(Sender: TObject);
 var
-  LmyNd: Int64;
-  TS : TStringList;
-  BK: TBytes;
+//  LmyNd: Int64;
+//  TS : TStringList;
+//  BK: TBytes;
   lviSelected: TListItem;
 begin
   if lvFiles.Selected = nil then exit;
@@ -265,16 +268,22 @@ begin
   if MessageDlg('Delete selected file [' +lvFiles.Selected.Caption + '] ?',mtConfirmation,[mbOk,mbCancel],0) = mrCancel then exit;
 
   lviSelected := lvFiles.Selected;
-  TS := TStringList.Create;
+//  TS := TStringList.Create;
+//  { TODO : sostituire con la locate su xtDSFiles oppure aggiungere un comendo sulla classe xtDrive}
+//  TS.Values['PK_ID'] := TFileNode(lvFiles.Selected.data).pk_id.ToString;
+//  TS.Values['DELETED'] := 'S';
+//  TS.Values['xtEntity'] := 'files';
+//  xtDSFiles.customPost(TS,nil);
+//  xtDSFiles.Close;
+//  xtDSFiles.Open;
+//
+//  TS.Free;
 
-  TS.Values['PK_ID'] := TFileNode(lvFiles.Selected.data).pk_id.ToString;
-  TS.Values['DELETED'] := 'S';
-  TS.Values['xtEntity'] := 'files';
-  xtDSFiles.customPost(TS,nil);
+  xtDriveCommands.deleteFile(TFileNode(lvFiles.Selected.data).pk_id);
+
   xtDSFiles.Close;
   xtDSFiles.Open;
-
-  TS.Free;
+//
 
 
 end;
@@ -293,7 +302,11 @@ begin
    then exit;
 
   If tvFolders.Selected.Count > 0 then
-   raise Exception.Create('there are subfolder, delete that first');
+   Begin
+
+     if messageDlg('Selected folder is not empty, are you sure that you want to erase it and all it''s content?',TMSgDlgType.mtConfirmation,[TMsgDlgBtn.mbOK,TMsgDlgBtn.mbCancel],0) <> mrOk then
+      exit;
+   End;
 
 
   LmyNd := TEntityNode(tvFolders.Selected.data).pk_id;
@@ -302,9 +315,18 @@ begin
    raise Exception.Create('riprovare...');
 
   if xtDsFolders.Locate('PK_ID',LmyNd) then
-   xtDsFolders.Delete;
+   try
+     xtDsFolders.Delete;
 
-  tvFolders.Selected.Delete;
+     tvFolders.Selected.Delete;
+   except
+    on e:exception do
+     Begin
+      raise Exception.Create('Error occured on deleting folder:'+ e.Message);
+     End;
+   end;
+
+
 end;
 
 procedure TfrmDrive.estComparetorevision1Click(Sender: TObject);
@@ -501,6 +523,17 @@ begin
     xtDsFolders.Post;
     tvFolders.Selected.Text := folderName;
    End;
+end;
+
+procedure TfrmDrive.SearchBox1InvokeSearch(Sender: TObject);
+var
+  frmDS: TfrmDriveSearch;
+begin
+ frmDS := TfrmDriveSearch.Create(nil);
+ frmDs.SearchBox1.Text := SearchBox1.Text;
+ frmDs.Show;
+ frmDs.SearchBox1InvokeSearch(nil);
+
 end;
 
 Procedure TfrmDrive.SetcurrentFolder(const Value: TEntityNode);

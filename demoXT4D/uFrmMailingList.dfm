@@ -251,8 +251,6 @@ object frmMailingList: TfrmMailingList
       TabOrder = 0
       ViewStyle = vsReport
       OnClick = lvMailingListClick
-      ExplicitTop = 65
-      ExplicitHeight = 527
     end
   end
   object xtSendMail1: TxtSendMail
